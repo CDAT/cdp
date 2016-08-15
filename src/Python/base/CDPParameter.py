@@ -8,7 +8,9 @@ class CDPParameter(object):
 
     @abc.abstractmethod
     def check_values():
-        """Check that all of the variables in this parameter file are valid."""
+        """Check that all of the variables in this parameter file are valid.
+        If loading from a file using load_parameter_from_py(), check if all of
+        the correct variables are defined in that file."""
         raise NotImplementedError()
 
     def __get__(self):
@@ -24,8 +26,11 @@ class CDPParameter(object):
         #self.user_defined_vars has all of the definded variables such as vars, output_path, etc
 
         path_to_module = os.path.split(parameter_file_path)[0]
-        #[:-3] used to remove '.py'
-        module_name = os.path.split(parameter_file_path)[1][:-3]
+        module_name = os.path.split(parameter_file_path)[1]
+        if module_name.count('.') > 1:
+            raise ValueError("Filename cannot contain '.' outside the extension.")
+        if('.' in module_name):
+            module_name = module_name.split('.')[0]
 
         sys.path.append(path_to_module)
         self.user_file = importlib.import_module(module_name)
