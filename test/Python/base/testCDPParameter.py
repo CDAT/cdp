@@ -5,7 +5,6 @@ from CDPParameter import *
 
 class testCDPParameter(unittest.TestCase):
     def setUp(self):
-
         #CDPParameter is an abstract base class, so we need to inherit from
         #it to test it.
         class myCDPParameter(CDPParameter):
@@ -14,8 +13,13 @@ class testCDPParameter(unittest.TestCase):
 
         self.cdpparameter = myCDPParameter()
 
+
     def test_load_working_parameter(self):
         self.assertEquals(None, self.cdpparameter.load_parameter_from_py('./testCDPParameter.py'))
+
+    def test_load_broken_parameter_with_dot_in_path(self):
+        with self.assertRaises(ValueError):
+            self.cdpparameter.load_parameter_from_py('./testCDP.Parameter.py')
 
 if __name__ == '__main__':
     unittest.main()
