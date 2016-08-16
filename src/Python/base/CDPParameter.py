@@ -32,7 +32,7 @@ class CDPParameter(object):
         if('.' in module_name):
             module_name = module_name.split('.')[0]
 
-        sys.path.append(path_to_module)
+        sys.path.insert(0, path_to_module)
         self.user_file = importlib.import_module(module_name)
         self.user_defined_vars = [user_var for user_var in dir(self.user_file) if not user_var.startswith('__')]
 
