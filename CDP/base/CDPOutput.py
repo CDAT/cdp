@@ -20,7 +20,7 @@ class CDPOutput(object):
 
     @abc.abstractmethod
     def create_output():
-        """Given parameters and tools, run diagnostics."""
+        """Given parameters, create the respective output."""
         raise NotImplementedError()
 
     def run():
