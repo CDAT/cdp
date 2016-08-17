@@ -3,9 +3,9 @@ import abc
 class CDPDriver(object):
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self):
-        self.parameter = None
-        self.tools = list()
+    def __init__(self, parameter=None, *tools=list()):
+        self.parameter = parameter
+        self.tools = tools
 
     def set_parameter(p):
         self.parameter = p

@@ -3,6 +3,13 @@ import logging
 
 class PMPParameter(CDPParameter):
     def __init__(self):
+        #Metrics run identification
+        self.case_id = ''
+        self.model_versions = []
+        self.period = ''
+        self.realization = ''
+
+        #
         self.vars = []
         self.ref = []
         self.target_grid = ''
@@ -29,5 +36,25 @@ class PMPParameter(CDPParameter):
 
         self.custom_observations = ''
 
+    def check_vars(self):
+        if type(self.vars) is list:
+            raise TypeError("var is wrong type. It must be a list.")
+
+        vars_2d_atmos = ['clt','hfss','pr','prw','psl','rlut','rlutcs',
+            'rsdt','rsut','rsutcs','tas','tauu','tauv','ts','uas','vas']
+        vars_3d_atmos = ['hur','hus','huss','ta','ua','va','zg']
+        #TODO ask someone if the height can be any value, or only these values
+        vars_3d_atmos_with_heights = ['hus_850','ta_850','ta_200','ua_850',
+            'ua_200','va_850','va_200','zg_500']
+        vars_2d_ocean = ['sos', 'tos', 'zos']
+        vars_non_std = ['rlwcrf','rswcrf']
+
+        for variable in self.vars:
+            if (variable not in vars_2d_atmos) or (variable not in vars_3d_atmos)\
+                or (variable not in vars_2d_ocean) or (variable not in vars_non_std)\
+                or (variable not in vars_3d_atmos_with_heights):
+                    raise ValueError("var does not have a valid value.")
+
     def check_values(self):
-        pass
+        #check that all of the variables in __init__() have a valid value
+        self.check_vars()
