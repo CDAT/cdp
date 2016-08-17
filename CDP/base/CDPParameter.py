@@ -46,6 +46,5 @@ class CDPParameter(object):
     #Parameter files can also be initalized from a file.
     #This is bad practice, but it was a requirement.
     def load_parameter_from_py(self, parameter_file_path):
-
         self.import_user_parameter_file_as_module(parameter_file_path)
         self.load_vars_from_user_module()
