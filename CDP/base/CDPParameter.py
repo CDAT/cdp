@@ -8,9 +8,7 @@ class CDPParameter(object):
 
     @abc.abstractmethod
     def check_values():
-        """Check that all of the variables in this parameter file are valid.
-        If loading from a file using load_parameter_from_py(), check if all of
-        the correct variables are defined in that file."""
+        """Some doc string."""
         raise NotImplementedError()
 
     def __get__(self):

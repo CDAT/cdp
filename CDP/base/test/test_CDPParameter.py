@@ -1,7 +1,6 @@
 import unittest
 import sys
-sys.path.insert(0, '../')
-from CDPParameter import *
+from CDP.base.CDPParameter import *
 
 class testCDPParameter(unittest.TestCase):
     def write_file(self, file_name, contents):
