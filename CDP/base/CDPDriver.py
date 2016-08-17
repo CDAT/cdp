@@ -21,7 +21,7 @@ class CDPDriver(object):
 
 
     @abc.abstractmethod
-    def unpack_parameter():
+    def check_parameter():
         """Check that self.parameter has the correct information for this driver."""
         raise NotImplementedError()
 
