@@ -9,7 +9,6 @@ class PMPParameter(CDPParameter):
         self.period = ''
         self.realization = ''
 
-        #
         self.vars = []
         self.ref = []
         self.target_grid = ''

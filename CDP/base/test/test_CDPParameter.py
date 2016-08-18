@@ -1,6 +1,5 @@
 import unittest
 import sys
-#import CDPParameter
 from CDP.base.CDPParameter import *
 
 class testCDPParameter(unittest.TestCase):
