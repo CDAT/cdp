@@ -11,11 +11,6 @@ class testPMPParameter(unittest.TestCase):
         with self.assertRaises(TypeError):
             self.pmp_parameter.check_vars()
 
-    def test_check_vars_with_nonvalid_vars(self):
-        self.pmp_parameter.vars = ['this_is_not_a_var']
-        with self.assertRaises(ValueError):
-            self.pmp_parameter.check_vars()
-
     def test_check_ref_with_nonlist_ref(self):
         self.pmp_parameter.ref = 'default'
         with self.assertRaises(TypeError):

@@ -1,7 +1,5 @@
 from setuptools import find_packages, setup
-print find_packages(exclude=["*.test", "*.test.*", "test.*", "test"])
-print '-----------'
-print find_packages()
+
 setup(
     name="CDP",
     version="0.1a",

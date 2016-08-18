@@ -49,19 +49,18 @@ class PMPParameter(CDPParameter):
             if (variable not in vars_2d_atmos) or (variable not in vars_3d_atmos)\
                 or (variable not in vars_2d_ocean) or (variable not in vars_non_std)\
                 or (variable not in vars_3d_atmos_with_heights):
-                    raise ValueError("%s is not a valid value in vars." % variable)
+                    logging.warning("%s might not be a valid value in vars." % variable)
 
     def check_ref(self):
         if (type(self.ref) is not list) and (type(self.ref) is not tuple):
             raise TypeError("ref is the wrong type. It must be a list or tuple.")
 
         ref_values = ['default','all','alternate','ref3']
-        if self.ref not in ref_values:
-            error_message = ("%s is not a valid value for ref. "
-                            "Can only be "
-                            ", ".join(ref_values))
-            raise ValueError(error_message)
+        for r in self.ref:
+            if r not in ref_values:
+                logging.warning("%s might not be a valid value in ref." % r)
 
     def check_values(self):
         #check that all of the variables in __init__() have a valid value
         self.check_vars()
+        self.check_ref()
