@@ -37,8 +37,8 @@ class PMPParameter(CDPParameter):
         self.custom_observations = ''
 
     def check_vars(self):
-        if type(self.vars) is list:
-            raise TypeError("var is wrong type. It must be a list.")
+        if (type(self.vars) is not list) or (type(self.vars) is not tuple):
+            raise TypeError("vars is wrong type. It must be a list or tuple.")
 
         vars_2d_atmos = ['clt','hfss','pr','prw','psl','rlut','rlutcs',
             'rsdt','rsut','rsutcs','tas','tauu','tauv','ts','uas','vas']
@@ -53,7 +53,7 @@ class PMPParameter(CDPParameter):
             if (variable not in vars_2d_atmos) or (variable not in vars_3d_atmos)\
                 or (variable not in vars_2d_ocean) or (variable not in vars_non_std)\
                 or (variable not in vars_3d_atmos_with_heights):
-                    raise ValueError("var does not have a valid value.")
+                    raise ValueError("%s is not a valid value in vars." % variable)
 
     def check_values(self):
         #check that all of the variables in __init__() have a valid value
