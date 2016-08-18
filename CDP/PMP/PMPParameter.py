@@ -36,7 +36,7 @@ class PMPParameter(CDPParameter):
         self.custom_observations = ''
 
     def check_vars(self):
-        if (type(self.vars) is not list) or (type(self.vars) is not tuple):
+        if (type(self.vars) is not list) and (type(self.vars) is not tuple):
             raise TypeError("vars is wrong type. It must be a list or tuple.")
 
         vars_2d_atmos = ['clt','hfss','pr','prw','psl','rlut','rlutcs',
