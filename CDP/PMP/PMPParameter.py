@@ -75,6 +75,19 @@ class PMPParameter(CDPParameter):
     def check_regrid_tool(self):
         self.check_str_var_in_str_list(self.regrid_tool, 'regrid_tool', ['regrid2','esmf'])
 
+    def check_regrid_method(self):
+        self.check_str_var_in_str_list(self.regrid_method, 'regrid_method', ['linear','conservative'])
+
+    def check_regrid_tool_ocn(self):
+        self.check_str_var_in_str_list(self.regrid_tool_ocn, 'regrid_tool_ocn', ['regrid2','esmf'])
+
+    def check_regrid_method_ocn(self):
+        self.check_str_var_in_str_list(self.regrid_method_ocn, 'regrid_method_ocn', ['linear','conservative'])
+
+    def check_save_mod_clims(self):
+        if self.save_mod_clims is None:
+            raise ValueError("save_mod_clims cannot be None. It must be either True or False.")
+
 
     def check_values(self):
         #check that all of the variables in __init__() have a valid value
