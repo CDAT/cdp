@@ -35,42 +35,50 @@ class PMPParameter(CDPParameter):
 
         self.custom_observations = ''
 
-    def check_vars(self):
-        if (type(self.vars) is not list) and (type(self.vars) is not tuple):
-            raise TypeError("vars is the wrong type. It must be a list or tuple.")
+    def check_str_seq_in_str_list(self, str_sequence, str_sequence_name, str_vars_list):
+        if type(str_sequence) is not list and type(str_sequence) is not tuple:
+            raise TypeError("%s is the wrong type. It must be a list or tuple." % str_sequence_name)
 
+        for str_var in str_sequence:
+            if str_var not in str_vars_list:
+                logging.warning("%s might not be a valid value in %s." % (str_var, str_sequence_name))
+
+
+    def check_str_var_in_str_list(self, str_var, str_var_name, str_vars_list):
+        if type(str_var) is not str:
+                raise TypeError("%s is the wrong type. It must be a string." % str_vars_list)
+
+        if str_var not in str_vars_list:
+                logging.warning("%s might not be a valid value in %s." % (str_var, str_var_name))
+
+
+    def check_vars(self):
         vars_2d_atmos = ['clt','hfss','pr','prw','psl','rlut','rlutcs',
             'rsdt','rsut','rsutcs','tas','tauu','tauv','ts','uas','vas']
         vars_3d_atmos = ['hur','hus','huss','ta','ua','va','zg']
         vars_2d_ocean = ['sos', 'tos', 'zos']
         vars_non_std = ['rlwcrf','rswcrf']
+        vars_values = vars_2d_atmos + vars_3d_atmos + vars_2d_ocean + vars_non_std
 
-        for variable in self.vars:
-            if (variable not in vars_2d_atmos) or (variable not in vars_3d_atmos)\
-                or (variable not in vars_2d_ocean) or (variable not in vars_non_std)\
-                or (variable not in vars_3d_atmos_with_heights):
-                    logging.warning("%s might not be a valid value in vars." % variable)
+        self.check_str_seq_in_str_list(self.vars, 'vars', vars_values)
+
 
     def check_ref(self):
-        if (type(self.ref) is not list) and (type(self.ref) is not tuple):
-            raise TypeError("ref is the wrong type. It must be a list or tuple.")
-
         ref_values = ['default','all','alternate','ref3']
-        for r in self.ref:
-            if r not in ref_values:
-                logging.warning("%s might not be a valid value in ref." % r)
+        self.check_str_seq_in_str_list(self.ref, 'ref', ref_values)
+
 
     def check_target_grid(self):
-        #TODO add checking to see if type is cdms grid type as well
-        if type(self.target_grid) is not str:
-                raise TypeError("target_grid is the wrong type. It must be a string.")
+        self.check_str_var_in_str_list(self.target_grid, 'target_grid', ['2.5x2.5'])
 
-        target_grid_values = ['2.5x2.5']
-        if self.target_grid not in target_grid_values:
-                logging.warning("%s might not be a valid value in target_grid." % self.target_grid)
 
-    
+    def check_regrid_tool(self):
+        self.check_str_var_in_str_list(self.regrid_tool, 'regrid_tool', ['regrid2','esmf'])
+
+
     def check_values(self):
         #check that all of the variables in __init__() have a valid value
         self.check_vars()
         self.check_ref()
+        self.check_target_grid()
+        self.check_regrid_tool()

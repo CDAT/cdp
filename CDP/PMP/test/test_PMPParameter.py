@@ -21,5 +21,10 @@ class testPMPParameter(unittest.TestCase):
         with self.assertRaises(TypeError):
             self.pmp_parameter.check_target_grid()
 
+    def test_check_regrid_tool_with_nonstr_tool(self):
+        self.pmp_parameter.regrid_tool = ['regrid2']
+        with self.assertRaises(TypeError):
+            self.pmp_parameter.check_regrid_tool()
+
 if __name__ == '__main__':
     unittest.main()
