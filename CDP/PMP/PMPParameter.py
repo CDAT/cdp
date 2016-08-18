@@ -60,6 +60,16 @@ class PMPParameter(CDPParameter):
             if r not in ref_values:
                 logging.warning("%s might not be a valid value in ref." % r)
 
+    def check_target_grid(self):
+        #TODO add checking to see if type is cdms grid type as well
+        if type(self.target_grid) is not str:
+                raise TypeError("target_grid is the wrong type. It must be a string.")
+
+        target_grid_values = ['2.5x2.5']
+        if self.target_grid not in target_grid_values:
+                logging.warning("%s might not be a valid value in target_grid." % self.target_grid)
+
+    
     def check_values(self):
         #check that all of the variables in __init__() have a valid value
         self.check_vars()

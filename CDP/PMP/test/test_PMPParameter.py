@@ -16,5 +16,10 @@ class testPMPParameter(unittest.TestCase):
         with self.assertRaises(TypeError):
             self.pmp_parameter.check_ref()
 
+    def test_check_target_grid_with_nonstr_grid(self):
+        self.pmp_parameter.target_grid = ['default']
+        with self.assertRaises(TypeError):
+            self.pmp_parameter.check_target_grid()
+
 if __name__ == '__main__':
     unittest.main()
