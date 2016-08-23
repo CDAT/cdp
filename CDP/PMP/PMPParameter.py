@@ -101,6 +101,52 @@ class PMPParameter(CDPParameter):
         if type(self.filename_template) is not str:
             raise TypeError("filename_template is the wrong type. It must be a string.")
 
+    def check_surface_type_land_fraction_filename_template(self):
+        if type(self.surface_type_land_fraction_filename_template) is not str:
+            raise TypeError("surface_type_land_fraction_filename_template is the wrong type. It must be a string.")
+
+    def check_generate_surface_type_land_fraction(self):
+        if self.generate_surface_type_land_fraction is None:
+            raise ValueError("generate_surface_type_land_fraction cannot be None. It must be either True or False.")
+
+    def check_mod_data_path(self):
+        if type(self.mod_data_path) is not str:
+            raise TypeError("mod_data_path is the wrong type. It must be a string.")
+
+        if self.metrics_output_path == '':
+            logging.warning("metrics_output_path is blank.")
+
+    def check_obs_data_path(self):
+        if type(self.obs_data_path) is not str:
+            raise TypeError("obs_data_path is the wrong type. It must be a string.")
+
+        if self.obs_data_path == '':
+            logging.warning("obs_data_path is blank.")
+
+    def check_metrics_output_path(self):
+        if type(self.metrics_output_path) is not str:
+            raise TypeError("metrics_output_path is the wrong type. It must be a string.")
+
+        if self.metrics_output_path == '':
+            logging.warning("metrics_output_path is blank.")
+
+    def check_model_clims_interpolated_output(self):
+        if type(self.model_clims_interpolated_output) is not str:
+            raise TypeError("model_clims_interpolated_output is the wrong type. It must be a string.")
+
+        if self.model_clims_interpolated_output == '':
+            logging.warning("model_clims_interpolated_output is blank.")
+
+    def check_filename_output_template(self):
+        if type(self.filename_output_template) is not str:
+            raise TypeError("filename_output_template is the wrong type. It must be a string.")
+
+        if self.filename_output_template == '':
+            logging.warning("filename_output_template is blank.")
+
+
+
+
     def check_values(self):
         #check that all of the variables in __init__() have a valid value
         self.check_vars()
