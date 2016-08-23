@@ -35,6 +35,15 @@ class PMPParameter(CDPParameter):
 
         self.custom_observations = ''
 
+
+    def check_str(self, str_var, str_var_name):
+        if type(str_var) is not str:
+            raise TypeError("%s is the wrong type. It must be a string." % str_var_name)
+
+        if str_var == '':
+            logging.warning("%s is blank." % str_var_name)
+
+
     def check_str_seq_in_str_list(self, str_sequence, str_sequence_name, str_vars_list):
         if type(str_sequence) is not list and type(str_sequence) is not tuple:
             raise TypeError("%s is the wrong type. It must be a list or tuple." % str_sequence_name)
@@ -98,53 +107,29 @@ class PMPParameter(CDPParameter):
             raise TypeError("custom_keys is the wrong type. It must be a dictionary.")
 
     def check_filename_template(self):
-        if type(self.filename_template) is not str:
-            raise TypeError("filename_template is the wrong type. It must be a string.")
+        self.check_str(self.filename_template, 'filename_template')
 
     def check_surface_type_land_fraction_filename_template(self):
-        if type(self.surface_type_land_fraction_filename_template) is not str:
-            raise TypeError("surface_type_land_fraction_filename_template is the wrong type. It must be a string.")
+        self.check_str(self.surface_type_land_fraction_filename_template, 'surface_type_land_fraction_filename_template')
 
     def check_generate_surface_type_land_fraction(self):
         if self.generate_surface_type_land_fraction is None:
             raise ValueError("generate_surface_type_land_fraction cannot be None. It must be either True or False.")
 
     def check_mod_data_path(self):
-        if type(self.mod_data_path) is not str:
-            raise TypeError("mod_data_path is the wrong type. It must be a string.")
-
-        if self.metrics_output_path == '':
-            logging.warning("metrics_output_path is blank.")
+        self.check_str(self.mod_data_path, 'mod_data_path')
 
     def check_obs_data_path(self):
-        if type(self.obs_data_path) is not str:
-            raise TypeError("obs_data_path is the wrong type. It must be a string.")
-
-        if self.obs_data_path == '':
-            logging.warning("obs_data_path is blank.")
+        self.check_str(self.obs_data_path, 'obs_data_path')
 
     def check_metrics_output_path(self):
-        if type(self.metrics_output_path) is not str:
-            raise TypeError("metrics_output_path is the wrong type. It must be a string.")
-
-        if self.metrics_output_path == '':
-            logging.warning("metrics_output_path is blank.")
+        self.check_str(self.metrics_output_path, 'metrics_output_path')
 
     def check_model_clims_interpolated_output(self):
-        if type(self.model_clims_interpolated_output) is not str:
-            raise TypeError("model_clims_interpolated_output is the wrong type. It must be a string.")
-
-        if self.model_clims_interpolated_output == '':
-            logging.warning("model_clims_interpolated_output is blank.")
+        self.check_str(self.model_clims_interpolated_output, 'model_clims_interpolated_output')
 
     def check_filename_output_template(self):
-        if type(self.filename_output_template) is not str:
-            raise TypeError("filename_output_template is the wrong type. It must be a string.")
-
-        if self.filename_output_template == '':
-            logging.warning("filename_output_template is blank.")
-
-
+        self.check_str(self.filename_output_template, 'filename_output_template')
 
 
     def check_values(self):
