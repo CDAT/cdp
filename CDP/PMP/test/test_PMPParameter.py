@@ -31,6 +31,11 @@ class testPMPParameter(unittest.TestCase):
         with self.assertRaises(TypeError):
             self.pmp_parameter.check_regrid_method()
 
+    def test_check_save_mod_clims_with_none(self):
+        self.pmp_parameter.save_mod_clims = None
+        with self.assertRaises(ValueError):
+            self.pmp_parameter.check_save_mod_clims()
+
 
 if __name__ == '__main__':
     unittest.main()

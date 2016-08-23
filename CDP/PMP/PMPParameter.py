@@ -95,3 +95,4 @@ class PMPParameter(CDPParameter):
         self.check_ref()
         self.check_target_grid()
         self.check_regrid_tool()
+        self.check_save_mod_clims()
