@@ -33,7 +33,7 @@ class PMPParameter(CDPParameter):
         self.model_clims_interpolated_output = ''
         self.filename_output_template = ''
 
-        self.custom_observations = ''
+        self.custom_observations_path = ''
 
 
     def check_str(self, str_var, str_var_name):
@@ -60,6 +60,22 @@ class PMPParameter(CDPParameter):
         if str_var not in str_vars_list:
                 logging.warning("%s might not be a valid value in %s." % (str_var, str_var_name))
 
+
+    def check_case_id(self):
+        self.check_str(self.case_id, 'case_id')
+
+    def check_model_versions(self):
+        if type(self.model_versions) is not list and type(self.model_versions) is not tuple:
+            raise TypeError("model_versions is the wrong type. It must be a list or tuple.")
+
+        if self.model_versions == [] or self.model_versions == ():
+            logging.warning("model_versions is blank.")
+
+    def check_period(self):
+        self.check_str(self.period, 'period')
+
+    def check_realization(self):
+        self.check_str(self.realization, 'realization')
 
     def check_vars(self):
         vars_2d_atmos = ['clt','hfss','pr','prw','psl','rlut','rlutcs',
@@ -131,12 +147,32 @@ class PMPParameter(CDPParameter):
     def check_filename_output_template(self):
         self.check_str(self.filename_output_template, 'filename_output_template')
 
+    def check_custom_observations_path(self):
+        self.check_str(self.custom_observations_path, 'custom_observations_path')
 
     def check_values(self):
         #check that all of the variables in __init__() have a valid value
+        self.check_case_id()
+        self.check_model_versions()
+        self.check_period()
+        self.check_realization()
         self.check_vars()
         self.check_ref()
         self.check_target_grid()
         self.check_regrid_tool()
+        self.check_regrid_method()
+        self.check_regrid_tool_ocn()
+        self.check_regrid_method_ocn()
         self.check_save_mod_clims()
         self.check_regions_specs()
+        self.check_regions()
+        self.check_custom_keys()
+        self.check_filename_template()
+        self.check_surface_type_land_fraction_filename_template()
+        self.check_generate_surface_type_land_fraction()
+        self.check_mod_data_path()
+        self.check_obs_data_path()
+        self.check_metrics_output_path()
+        self.check_model_clims_interpolated_output()
+        self.check_filename_output_template()
+        self.check_custom_observations_path()
