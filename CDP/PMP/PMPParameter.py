@@ -1,5 +1,5 @@
-from CDP.base.CDPParameter import *
 import logging
+from CDP.base.CDPParameter import *
 
 class PMPParameter(CDPParameter):
     def __init__(self):
