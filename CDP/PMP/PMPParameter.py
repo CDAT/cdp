@@ -55,7 +55,7 @@ class PMPParameter(CDPParameter):
 
     def check_str_var_in_str_list(self, str_var, str_var_name, str_vars_list):
         if type(str_var) is not str:
-                raise TypeError("%s is the wrong type. It must be a string." % str_vars_list)
+                raise TypeError("%s is the wrong type. It must be a string." % str_var_name)
 
         if str_var not in str_vars_list:
                 logging.warning("%s might not be a valid value in %s." % (str_var, str_var_name))
