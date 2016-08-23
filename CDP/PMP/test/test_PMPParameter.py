@@ -36,6 +36,27 @@ class testPMPParameter(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.pmp_parameter.check_save_mod_clims()
 
+    def test_check_regions_specs_with_non_dict(self):
+        self.pmp_parameter.regions_specs = ['Nino34']
+        with self.assertRaises(TypeError):
+            self.pmp_parameter.check_regions_specs()
+
+    def test_check_regions_with_non_dict(self):
+        self.pmp_parameter.regions = ['Nino34']
+        with self.assertRaises(TypeError):
+            self.pmp_parameter.check_regions()
+
+    def test_check_custom_keys_with_non_dict(self):
+        self.pmp_parameter.custom_keys = ['Nino34']
+        with self.assertRaises(TypeError):
+            self.pmp_parameter.check_custom_keys()
+
+    def test_check_filename_template(self):
+        self.pmp_parameter.filename_template = ['%(variable)_%(period)']
+        with self.assertRaises(TypeError):
+            self.pmp_parameter.check_filename_template()
+
+
 
 if __name__ == '__main__':
     unittest.main()

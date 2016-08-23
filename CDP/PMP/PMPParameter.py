@@ -62,15 +62,12 @@ class PMPParameter(CDPParameter):
 
         self.check_str_seq_in_str_list(self.vars, 'vars', vars_values)
 
-
     def check_ref(self):
         ref_values = ['default','all','alternate','ref3']
         self.check_str_seq_in_str_list(self.ref, 'ref', ref_values)
 
-
     def check_target_grid(self):
         self.check_str_var_in_str_list(self.target_grid, 'target_grid', ['2.5x2.5'])
-
 
     def check_regrid_tool(self):
         self.check_str_var_in_str_list(self.regrid_tool, 'regrid_tool', ['regrid2','esmf'])
@@ -88,6 +85,21 @@ class PMPParameter(CDPParameter):
         if self.save_mod_clims is None:
             raise ValueError("save_mod_clims cannot be None. It must be either True or False.")
 
+    def check_regions_specs(self):
+        if type(self.regions_specs) is not dict:
+            raise TypeError("regions_specs is the wrong type. It must be a dictionary.")
+
+    def check_regions(self):
+        if type(self.regions) is not dict:
+            raise TypeError("regions is the wrong type. It must be a dictionary.")
+
+    def check_custom_keys(self):
+        if type(self.custom_keys) is not dict:
+            raise TypeError("custom_keys is the wrong type. It must be a dictionary.")
+
+    def check_filename_template(self):
+        if type(self.filename_template) is not str:
+            raise TypeError("filename_template is the wrong type. It must be a string.")
 
     def check_values(self):
         #check that all of the variables in __init__() have a valid value
@@ -96,3 +108,4 @@ class PMPParameter(CDPParameter):
         self.check_target_grid()
         self.check_regrid_tool()
         self.check_save_mod_clims()
+        self.check_regions_specs()
