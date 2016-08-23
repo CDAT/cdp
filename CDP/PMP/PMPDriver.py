@@ -7,10 +7,11 @@ class PMPDriver(CDPDriver):
         PMPDriverCheckParameter.check_parameter(self.parameter)
 
 
-    def calculate_level_from_var_name_split(self, split_name):
-        if len(split_name) > 1:
-            self.level = float(split_name[-1]) * 100
-        else
+    def calculate_level(self, var_split_name):
+        #There is a height for the variable, ex: hus_850
+        if len(var_split_name) > 1:
+            self.level = float(var_split_name[-1]) * 100
+        else:
             self.level = None
 
     def run_diags(self):
