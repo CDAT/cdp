@@ -25,8 +25,3 @@ class PMPDriverCheckParameter(object):
                         'custom_observations_path']
         for var in vars_to_check:
             self.check_this_var_in_parameter(var)
-
-para = PMPParameter()
-del para.vars
-thing = PMPDriverCheckParameter(para)
-thing.check_parameter()
