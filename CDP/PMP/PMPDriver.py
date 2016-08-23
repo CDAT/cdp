@@ -14,8 +14,23 @@ class PMPDriver(CDPDriver):
         else:
             self.level = None
 
+
+    def setup_metrics_dictionary():
+        self.metrics_dictionary = collections.OrderedDict()
+
+        disclaimer_str = 'ADD DISCLAIMER TEXT SOON'
+        self.metrics_dictionary['DISCLAIMER'] = disclaimer_str
+        self.metrics_dictionary["RESULTS"] = collections.OrderedDict()
+
+        self.metrics_dictionary["Variable"] = {}
+
+        self.metrics_def_dictionary = collections.OrderedDict()
+
+
     def run_diags(self):
         for var_long_name in self.parameter.vars:
+            self.setup_metrics_dictionary()
+
             var_name_split = var_long_name.split('_')
             self.calculate_level(var_name_split)
 
