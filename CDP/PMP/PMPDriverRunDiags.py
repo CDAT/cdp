@@ -15,7 +15,7 @@ class PMPDriverRunDiags(object):
 
         def load_obs_dic(self):
             json_file_path = os.path.join(os.path.dirname(__file__),
-                            'share', 'ZZobs_info_dictionary.json')
+                            'share', 'obs_info_dictionary.json')
             try:
                 json_file = open(json_file_path)
             except IOError:
@@ -51,6 +51,11 @@ class PMPDriverRunDiags(object):
             self.metrics_dictionary["References"] = {}
             self.metrics_dictionary["RegionalMasking"] = {}
 
+        def set_grid(self):
+            self.grid["RegridMethod"] = self.regridMethod
+            self.grid["RegridTool"] = self.regridTool
+            self.grid["GridName"] = self.parameter.targetGrid
+
         def run_diags(self):
             for var_long_name in self.parameter.vars:
                 self.metrics_def_dictionary = collections.OrderedDict()
@@ -65,3 +70,6 @@ class PMPDriverRunDiags(object):
                 self.var = var_name_split[0]
 
                 self.set_regrid_and_realm_from_obs_dic_using_var()
+
+                self.grid = {}
+                self.set_grid()
