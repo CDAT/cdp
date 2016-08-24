@@ -21,6 +21,11 @@ class testPMPDriverRunDiags(unittest.TestCase):
         self.pmp_driver_run_diags.calculate_level(var_name_split)
         self.assertEquals(self.pmp_driver_run_diags.level, None)
 
+    def test_load_obs_dic(self):
+        try:
+            self.pmp_driver_run_diags.load_obs_dic()
+        except:
+            self.fail('Cannot open observation dictionary. Test failed.')
 
 if __name__ == '__main__':
     unittest.main()

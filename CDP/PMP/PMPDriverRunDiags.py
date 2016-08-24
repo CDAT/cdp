@@ -15,7 +15,7 @@ class PMPDriverRunDiags(object):
 
         def load_obs_dic(self):
             json_file_path = os.path.join(os.path.dirname(__file__),
-                            'share', 'obs_info_dictionary.json')
+                            'share', 'ZZobs_info_dictionary.json')
             try:
                 json_file = open(json_file_path)
             except IOError:
