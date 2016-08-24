@@ -1,5 +1,6 @@
 import logging
 from CDP.PMP.PMPDriver import *
+from CDP.PMP.PMPParameter import *
 
 class PMPDriverRunDiags(object):
 
@@ -10,6 +11,7 @@ class PMPDriverRunDiags(object):
             #There is a height for the variable, ex: hus_850
             if len(var_split_name) > 1:
                 self.level = float(var_split_name[-1]) * 100
+                self.metrics_dictionary["Variable"]["level"] = self.level
             else:
                 self.level = None
 
@@ -26,8 +28,6 @@ class PMPDriverRunDiags(object):
                 print 'Unexpected error: %s' % sys.exc_info()[0]
 
             self.obs_dic = json.loads(json_file.read())
-            print type(self.obs_dic)
-
             json_file.close()
 
         def set_regrid_and_realm_from_obs_dic_using_var(self):
@@ -56,6 +56,21 @@ class PMPDriverRunDiags(object):
             self.grid["RegridTool"] = self.regridTool
             self.grid["GridName"] = self.parameter.targetGrid
 
+        def set_refs(self):
+            self.refs = self.parameter.refs
+            if isinstance(self.refs, list) and 'all' in [r.lower() for r in self.refs]:
+                self.refs = 'all'
+            if isinstance(self.refs, (unicode, str)):
+                if self.refs.lower() == 'all':
+                    refs_list = self.obs_dic[self.var].keys()
+                    self.refs = []
+                    for r in refs_list:
+                        if instance(self.obs_dic[self.var][r], (unicode, str)):
+                            self.refs.append(r)
+                else:
+                    self.refs = [self.refs,]
+
+
         def run_diags(self):
             for var_long_name in self.parameter.vars:
                 self.metrics_def_dictionary = collections.OrderedDict()
@@ -73,3 +88,5 @@ class PMPDriverRunDiags(object):
 
                 self.grid = {}
                 self.set_grid()
+
+                self.set_refs()
