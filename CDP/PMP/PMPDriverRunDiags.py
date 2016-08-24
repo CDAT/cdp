@@ -11,7 +11,6 @@ class PMPDriverRunDiags(object):
             #There is a height for the variable, ex: hus_850
             if len(var_split_name) > 1:
                 self.level = float(var_split_name[-1]) * 100
-                self.metrics_dictionary["Variable"]["level"] = self.level
             else:
                 self.level = None
 
@@ -70,6 +69,38 @@ class PMPDriverRunDiags(object):
                 else:
                     self.refs = [self.refs,]
 
+        def set_regions_dic(self):
+            self.regions = self.parameter.regions
+
+            self.default_regions = []
+            file_path = os.path.join(os.path.dirname(__file__),
+                            'share', 'default_regions.py')
+            print file_path
+            try:
+                execfile(file_path)
+            except IOError:
+                logging.error('default_regions.py could not be loaded!')
+                print 'default_regions.py could not be loaded!'
+            except:
+                logging.error('Unexpected error: %s' % sys.exc_info()[0])
+                print 'Unexpected error: %s' % sys.exc_info()[0]
+
+            for var_name_long in self.parameter.vars:
+                var = var_name_long.split("_")[0]
+                region = self.regions.get(var, default_regions)
+                if not isinstance(region, (list, tuple)):
+                    region = [region, ]
+                #None means use the default regions
+                if None in region:
+                    region.remove(None)
+                    for r in self.default_regions:
+                        region.insert(0, r)
+                self.regions_dict[var] = region
+
+        def regions_loop(self):
+            self.set_regions_dic()
+            for self.region in self.region_dic:
+                pass
 
         def run_diags(self):
             for var_long_name in self.parameter.vars:
@@ -90,3 +121,5 @@ class PMPDriverRunDiags(object):
                 self.set_grid()
 
                 self.set_refs()
+
+                self.regions_loop()
