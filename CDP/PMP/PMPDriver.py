@@ -1,3 +1,7 @@
+import os, sys
+import collections
+import logging
+import json
 from CDP.base.CDPDriver import *
 
 class PMPDriver(CDPDriver):
@@ -14,6 +18,20 @@ class PMPDriver(CDPDriver):
         else:
             self.level = None
 
+    def load_obs_dic(self):
+        json_file_path = os.path.join(os.path.dirname(__file__),
+                        'share', 'obs_info_dictionary.json')
+
+        try:
+            json_file = open(json_file_path)
+        except IOError:
+            logging.error('obs dictionary could not be loaded!')
+            print 'obs dictionary could not be loaded!'
+        except:
+            print 'Unexpected error: %s' % sys.exc_info()[0]
+
+        self.obs_dic = json.loads(json_file.read())
+        json_file.close()
 
     def setup_metrics_dictionary():
         self.metrics_dictionary = collections.OrderedDict()
@@ -23,6 +41,8 @@ class PMPDriver(CDPDriver):
         self.metrics_dictionary["RESULTS"] = collections.OrderedDict()
 
         self.metrics_dictionary["Variable"] = {}
+        self.metrics_dictionary["References"] = {}
+        self.metrics_dictionary["RegionalMasking"] = {}
 
         self.metrics_def_dictionary = collections.OrderedDict()
 
@@ -38,3 +58,6 @@ class PMPDriver(CDPDriver):
 
     def export(self):
         pass
+
+thing = PMPDriver()
+thing.load_obs_dic()

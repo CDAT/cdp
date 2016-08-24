@@ -1,1 +1,1 @@
-__all__ = ['PMPDriver', 'PMPParameter']
+__all__ = ['PMPDriver', 'PMPParameter', 'PMPDriverCheckParameter']
