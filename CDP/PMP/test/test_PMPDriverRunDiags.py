@@ -23,21 +23,21 @@ class testPMPDriverRunDiags(unittest.TestCase):
 
     def test_loading_of_obs_info_dic(self):
         try:
-            path = '/share/obs_info_dictionary.json'
+            path = 'obs_info_dictionary.json'
             self.pmp_driver_run_diags.load_path_as_file_obj(path)
         except:
             self.fail('Cannot open obs_info_dictionary.json. Test failed.')
 
     def test_loading_of_default_regions(self):
         try:
-            path = '/share/default_regions.py'
+            path = 'default_regions.py'
             self.pmp_driver_run_diags.load_path_as_file_obj(path)
         except:
             self.fail('Cannot open default_regions.py. Test failed.')
 
     def test_loading_of_disclaimer_file(self):
         try:
-            path = '/share/disclaimer.txt'
+            path = 'disclaimer.txt'
             self.pmp_driver_run_diags.load_path_as_file_obj(path)
         except:
             self.fail('Cannot open disclaimer.txt. Test failed.')

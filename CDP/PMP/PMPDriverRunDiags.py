@@ -14,20 +14,21 @@ class PMPDriverRunDiags(object):
             else:
                 self.level = None
 
-        def load_path_as_file_obj(self, path):
-            file_path = os.path.join(os.path.dirname(__file__), path)
-            print 'FILEPATH: %s' % file_path
+        def load_path_as_file_obj(self, name):
+            file_path = os.path.join(os.path.dirname(__file__), 'share', name)
             try:
-                opened_file = open(path)
+                opened_file = open(file_path)
             except IOError:
                 logging.error('%s could not be loaded!' % file_path)
+                print 'IOError: %s could not be loaded!' % file_path
+
             except:
-                logging.error('Unexpected error: %s' % sys.exc_info()[0])
-                print 'Unexpected error: %s' % sys.exc_info()[0]
+                logging.error('Unexpected error while opening file: %s' % sys.exc_info()[0])
+                print 'Unexpected error while opening file: %s' % sys.exc_info()[0]
             return opened_file
 
         def load_obs_dic(self):
-            obs_json_file = load_path_as_file_obj('share/obs_info_dictionary.json')
+            obs_json_file = load_path_as_file_obj('obs_info_dictionary.json')
             self.obs_dic = json.loads(obs_json_file.read())
             obs_json_file.close()
 
@@ -43,9 +44,8 @@ class PMPDriverRunDiags(object):
                 self.table_realm = 'Amon'
                 self.realm = "atm"
 
-
         def setup_metrics_dictionary(self):
-            disclaimer_file = load_path_as_file_obj('share/disclaimer.txt')
+            disclaimer_file = load_path_as_file_obj('disclaimer.txt')
 
             self.metrics_dictionary['DISCLAIMER'] = disclaimer_file.read()
             disclaimer_file.close()
@@ -78,7 +78,7 @@ class PMPDriverRunDiags(object):
             self.regions = self.parameter.regions
 
             self.default_regions = []
-            regions_file = load_path_as_file_obj('share/default_regions.py')
+            regions_file = load_path_as_file_obj('default_regions.py')
             try:
                 execfile(regions_file.name)
             except:
@@ -124,5 +124,3 @@ class PMPDriverRunDiags(object):
                 self.set_refs()
 
                 self.regions_loop()
-thing = PMPDriverRunDiags(PMPParameter())
-thing.run_diags()
