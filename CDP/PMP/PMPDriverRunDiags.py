@@ -11,6 +11,7 @@ class PMPDriverRunDiags(object):
             #There is a height for the variable, ex: hus_850
             if len(var_split_name) > 1:
                 self.level = float(var_split_name[-1]) * 100
+                self.metrics_dictionary["Variable"]["level"] = self.level
             else:
                 self.level = None
 
@@ -28,7 +29,7 @@ class PMPDriverRunDiags(object):
             return opened_file
 
         def load_obs_dic(self):
-            obs_json_file = load_path_as_file_obj('obs_info_dictionary.json')
+            obs_json_file = self.load_path_as_file_obj('obs_info_dictionary.json')
             self.obs_dic = json.loads(obs_json_file.read())
             obs_json_file.close()
 
@@ -45,8 +46,7 @@ class PMPDriverRunDiags(object):
                 self.realm = "atm"
 
         def setup_metrics_dictionary(self):
-            disclaimer_file = load_path_as_file_obj('disclaimer.txt')
-
+            disclaimer_file = self.load_path_as_file_obj('disclaimer.txt')
             self.metrics_dictionary['DISCLAIMER'] = disclaimer_file.read()
             disclaimer_file.close()
             self.metrics_dictionary["RESULTS"] = collections.OrderedDict()
@@ -56,12 +56,12 @@ class PMPDriverRunDiags(object):
             self.metrics_dictionary["RegionalMasking"] = {}
 
         def set_grid(self):
-            self.grid["RegridMethod"] = self.regridMethod
-            self.grid["RegridTool"] = self.regridTool
-            self.grid["GridName"] = self.parameter.targetGrid
+            self.grid["RegridMethod"] = self.regrid_method
+            self.grid["RegridTool"] = self.regrid_tool
+            self.grid["GridName"] = self.parameter.target_grid
 
         def set_refs(self):
-            self.refs = self.parameter.refs
+            self.refs = self.parameter.ref
             if isinstance(self.refs, list) and 'all' in [r.lower() for r in self.refs]:
                 self.refs = 'all'
             if isinstance(self.refs, (unicode, str)):
@@ -78,9 +78,13 @@ class PMPDriverRunDiags(object):
             self.regions = self.parameter.regions
 
             self.default_regions = []
-            regions_file = load_path_as_file_obj('default_regions.py')
+            regions_file = self.load_path_as_file_obj('default_regions.py')
             try:
                 execfile(regions_file.name)
+            except ImportError:
+                logging.error('ImportError for cdutil, ignoring for now')
+                print 'ImportError for cdutil, ignoring for now'
+                #pass
             except:
                 logging.error('Unexpected error while running execfile(): %s' % sys.exc_info()[0])
                 print 'Unexpected error while running execfile(): %s' % sys.exc_info()[0]
@@ -88,7 +92,7 @@ class PMPDriverRunDiags(object):
             self.regions_dic = {}
             for var_name_long in self.parameter.vars:
                 var = var_name_long.split("_")[0]
-                region = self.regions.get(var, default_regions)
+                region = self.regions.get(var, self.default_regions)
                 if not isinstance(region, (list, tuple)):
                     region = [region, ]
                 #None means use the default regions
@@ -98,10 +102,37 @@ class PMPDriverRunDiags(object):
                         region.insert(0, r)
                 self.regions_dic[var] = region
 
+        def set_region_specs(self):
+            pass
+            
+        def refs_loop(self):
+            pass
+
         def regions_loop(self):
+            print '1111111111111'
             self.set_regions_dic()
-            for self.region in self.region_dic[self.var]:
-                pass
+            self.set_region_specs()
+            print '2222222222222'
+            print 'regions_dic[var]: ', self.regions_dic[self.var]
+            for self.region in self.regions_dic[self.var]:
+                if isinstance(self.region, basestring):
+                    self.region_name = self.region
+                    self.region = self.region_specs.get(
+                        self.region_name,
+                        self.region_specs.get(
+                        self.region_name.lower()
+                        )
+                    )
+                    self.region['id'] = self.region_name
+                elif self.region is None:
+                    self.region_name = 'global'
+                else:
+                    raise Exception ("Unknown region: %s" % self.region)
+
+                self.metrics_dictionary['RegionalMasking'][self.region_name] = self.region
+                #self.thingdsgfd['dsfsdf'] = 'sdfsds'
+                self.refs_loop()
+            print 'YOURE ALMOST DONE'
 
         def run_diags(self):
             for var_long_name in self.parameter.vars:
@@ -115,6 +146,7 @@ class PMPDriverRunDiags(object):
                 var_name_split = var_long_name.split('_')
                 self.calculate_level(var_name_split)
                 self.var = var_name_split[0]
+                self.metrics_dictionary["Variable"]["id"] = self.var
 
                 self.set_regrid_and_realm_from_obs_dic_using_var()
 
@@ -124,3 +156,8 @@ class PMPDriverRunDiags(object):
                 self.set_refs()
 
                 self.regions_loop()
+
+parameter = PMPParameter()
+parameter.vars = ['hus','pr']
+thing = PMPDriverRunDiags(parameter)
+thing.run_diags()
