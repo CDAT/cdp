@@ -14,20 +14,22 @@ class PMPDriverRunDiags(object):
             else:
                 self.level = None
 
-        def load_obs_dic(self):
-            json_file_path = os.path.join(os.path.dirname(__file__),
-                            'share', 'obs_info_dictionary.json')
+        def load_path_as_file_obj(self, path):
+            file_path = os.path.join(os.path.dirname(__file__), path)
+            print 'FILEPATH: %s' % file_path
             try:
-                json_file = open(json_file_path)
+                opened_file = open(path)
             except IOError:
-                logging.error('obs dictionary could not be loaded!')
-                print 'obs dictionary could not be loaded!'
+                logging.error('%s could not be loaded!' % file_path)
             except:
                 logging.error('Unexpected error: %s' % sys.exc_info()[0])
                 print 'Unexpected error: %s' % sys.exc_info()[0]
+            return opened_file
 
-            self.obs_dic = json.loads(json_file.read())
-            json_file.close()
+        def load_obs_dic(self):
+            obs_json_file = load_path_as_file_obj('share/obs_info_dictionary.json')
+            self.obs_dic = json.loads(obs_json_file.read())
+            obs_json_file.close()
 
         def set_regrid_and_realm_from_obs_dic_using_var(self):
             if self.obs_dic[self.var][self.obs_dic[self.var]["default"]]["CMIP_CMOR_TABLE"] == "Omon":
@@ -41,9 +43,12 @@ class PMPDriverRunDiags(object):
                 self.table_realm = 'Amon'
                 self.realm = "atm"
 
+
         def setup_metrics_dictionary(self):
-            disclaimer_str = 'ADD DISCLAIMER TEXT SOON'
-            self.metrics_dictionary['DISCLAIMER'] = disclaimer_str
+            disclaimer_file = load_path_as_file_obj('share/disclaimer.txt')
+
+            self.metrics_dictionary['DISCLAIMER'] = disclaimer_file.read()
+            disclaimer_file.close()
             self.metrics_dictionary["RESULTS"] = collections.OrderedDict()
 
             self.metrics_dictionary["Variable"] = {}
@@ -73,18 +78,14 @@ class PMPDriverRunDiags(object):
             self.regions = self.parameter.regions
 
             self.default_regions = []
-            file_path = os.path.join(os.path.dirname(__file__),
-                            'share', 'default_regions.py')
-            print file_path
+            regions_file = load_path_as_file_obj('share/default_regions.py')
             try:
-                execfile(file_path)
-            except IOError:
-                logging.error('default_regions.py could not be loaded!')
-                print 'default_regions.py could not be loaded!'
+                execfile(regions_file.name)
             except:
-                logging.error('Unexpected error: %s' % sys.exc_info()[0])
-                print 'Unexpected error: %s' % sys.exc_info()[0]
+                logging.error('Unexpected error while running execfile(): %s' % sys.exc_info()[0])
+                print 'Unexpected error while running execfile(): %s' % sys.exc_info()[0]
 
+            self.regions_dic = {}
             for var_name_long in self.parameter.vars:
                 var = var_name_long.split("_")[0]
                 region = self.regions.get(var, default_regions)
@@ -95,11 +96,11 @@ class PMPDriverRunDiags(object):
                     region.remove(None)
                     for r in self.default_regions:
                         region.insert(0, r)
-                self.regions_dict[var] = region
+                self.regions_dic[var] = region
 
         def regions_loop(self):
             self.set_regions_dic()
-            for self.region in self.region_dic:
+            for self.region in self.region_dic[self.var]:
                 pass
 
         def run_diags(self):
@@ -123,3 +124,5 @@ class PMPDriverRunDiags(object):
                 self.set_refs()
 
                 self.regions_loop()
+thing = PMPDriverRunDiags(PMPParameter())
+thing.run_diags()

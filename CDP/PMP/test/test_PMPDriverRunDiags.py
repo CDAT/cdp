@@ -21,17 +21,26 @@ class testPMPDriverRunDiags(unittest.TestCase):
         self.pmp_driver_run_diags.calculate_level(var_name_split)
         self.assertEquals(self.pmp_driver_run_diags.level, None)
 
-    def test_that_load_obs_dic_passes(self):
+    def test_loading_of_obs_info_dic(self):
         try:
-            self.pmp_driver_run_diags.load_obs_dic()
+            path = '/share/obs_info_dictionary.json'
+            self.pmp_driver_run_diags.load_path_as_file_obj(path)
         except:
-            self.fail('Cannot open observation dictionary. Test failed.')
+            self.fail('Cannot open obs_info_dictionary.json. Test failed.')
 
-    def test_that_set_regions_dic_passes(self):
+    def test_loading_of_default_regions(self):
         try:
-            self.pmp_driver_run_diags.set_regions_dic()
+            path = '/share/default_regions.py'
+            self.pmp_driver_run_diags.load_path_as_file_obj(path)
         except:
-            self.fail('Cannot open default_regions dictionary. Test failed.')
+            self.fail('Cannot open default_regions.py. Test failed.')
+
+    def test_loading_of_disclaimer_file(self):
+        try:
+            path = '/share/disclaimer.txt'
+            self.pmp_driver_run_diags.load_path_as_file_obj(path)
+        except:
+            self.fail('Cannot open disclaimer.txt. Test failed.')
 
 if __name__ == '__main__':
     unittest.main()
