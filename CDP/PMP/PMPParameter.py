@@ -21,6 +21,7 @@ class PMPParameter(CDPParameter):
         self.save_mod_clims = None
         self.regions_specs = {}
         self.regions = {}
+        self.regions_values = {}
         self.custom_keys = {}
 
         self.filename_template = ''
@@ -117,6 +118,10 @@ class PMPParameter(CDPParameter):
     def check_regions(self):
         if type(self.regions) is not dict:
             raise TypeError("regions is the wrong type. It must be a dictionary.")
+
+    def check_regions_values(self):
+        if type(self.regions_values) is not dict:
+            raise TypeError("regions_values is the wrong type. It must be a dictionary.")
 
     def check_custom_keys(self):
         if type(self.custom_keys) is not dict:

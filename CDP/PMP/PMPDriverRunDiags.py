@@ -103,8 +103,22 @@ class PMPDriverRunDiags(object):
                 self.regions_dic[var] = region
 
         def set_region_specs(self):
-            pass
-            
+            self.region_specs = {}
+            self.regions_values = {}
+            #update default region_values keys with user-defined ones
+            self.regions_values.update(self.parameter.regions_values)
+
+            for reg in regions_values:
+                dic = {"value": regions_values[reg]}
+                if reg in regions_specs:
+                    regions_specs[reg].update(dic)
+                else:
+                    regions_specs[reg] = dic
+
+            # Update/overwrite default region_specs keys with user ones
+            regions_specs.update(getattr(parameters, "regions_specs", {}))
+
+
         def refs_loop(self):
             pass
 

@@ -67,6 +67,11 @@ class testPMPParameter(unittest.TestCase):
         with self.assertRaises(TypeError):
             self.pmp_parameter.check_regions()
 
+    def test_check_regions_values_with_non_dict(self):
+        self.pmp_parameter.regions_values = ['Nino34']
+        with self.assertRaises(TypeError):
+            self.pmp_parameter.check_regions_values()
+
     def test_check_custom_keys_with_non_dict(self):
         self.pmp_parameter.custom_keys = ['Nino34']
         with self.assertRaises(TypeError):
