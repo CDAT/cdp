@@ -31,13 +31,13 @@ model_versions = ['ACCESS1-0']
 # Also note that these path are 'relative' to our current working path
 # But one could use absolute paths as well
 ## MODELS DATA LOCATION
-mod_data_path = 'pmp_demo/cmip5clims_metrics_package-amip/'
+mod_data_path = 'demo/cmip5clims_metrics_package-amip/'
 ## ROOT PATH FOR OBSERVATIONS
-obs_data_path = 'pmp_demo/obs/'
+obs_data_path = 'demo/obs/'
 
 ## DIRECTORY WHERE TO SAVE RESULTS
 # USER CHOOSES, RESULTS STORED IN  metrics_output_path + case_id
-metrics_output_path = './pmp_demo/%(case_id)/'
+metrics_output_path = './demo/%(case_id)/'
 
 # OBSERVATIONS TO USE: CHOICES INCLUDE 'default','alternate1','alternate2',... AND ARE VARIABLE DEPENDENT
 ref = ['default']  #,'alternate1','alternate2']
