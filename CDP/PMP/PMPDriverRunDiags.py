@@ -144,6 +144,7 @@ class PMPDriverRunDiags(object):
                 elif self.region is None:
                     self.region_name = 'global'
                 else:
+                    logging.error(("Unknown region: %s" % self.region)
                     raise Exception ("Unknown region: %s" % self.region)
 
                 self.metrics_dictionary['RegionalMasking'][self.region_name] = self.region
