@@ -3,6 +3,8 @@ import collections
 import logging
 import json
 from CDP.base.CDPDriver import *
+from CDP.PMP.PMPDriverCheckParameter import *
+from CDP.PMP.PMPDriverRunDiags import *
 
 class PMPDriver(CDPDriver):
 

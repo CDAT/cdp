@@ -35,7 +35,7 @@ class CDPDriver(object):
         """Export the results from run_diags()."""
         raise NotImplementedError()
 
-    def run():
-        unpack_parameter()
-        run_diags()
-        export()
+    def run(self):
+        self.check_parameter()
+        self.run_diags()
+        self.export()
