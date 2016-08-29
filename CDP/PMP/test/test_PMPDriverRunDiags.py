@@ -35,6 +35,14 @@ class testPMPDriverRunDiags(unittest.TestCase):
         except:
             self.fail('Cannot open default_regions.py. Test failed.')
 
+    def test_loading_of_default_regions_more(self):
+        try:
+            path = 'default_regions.py'
+            self.pmp_driver_run_diags.load_path_as_file_obj(path)
+            self.regions_specs
+        except:
+            self.fail('Cannot access self.regions_specs, error regarding default_regions.py. Test failed.')
+
     def test_loading_of_disclaimer_file(self):
         try:
             path = 'disclaimer.txt'

@@ -88,8 +88,9 @@ class PMPDriverRunDiags(object):
             except:
                 logging.error('Unexpected error while running execfile(): %s' % sys.exc_info()[0])
                 print 'Unexpected error while running execfile(): %s' % sys.exc_info()[0]
-
+            print 'self.regions_specs in set_regions_dic: ', self.regions_specs
             self.regions_dic = {}
+            #print 'set_regions_dic()'
             for var_name_long in self.parameter.vars:
                 var = var_name_long.split("_")[0]
                 region = self.regions.get(var, self.default_regions)
@@ -100,10 +101,12 @@ class PMPDriverRunDiags(object):
                     region.remove(None)
                     for r in self.default_regions:
                         region.insert(0, r)
+                #print 'type self.regions_dic[var]: ', type(region)
+                #print 'self.regions_dic[var]: ', region
                 self.regions_dic[var] = region
 
+
         def set_region_specs(self):
-            self.regions_specs = {}
             self.regions_values = {}
             #update default region_values keys with user-defined ones
             self.regions_values.update(self.parameter.regions_values)
@@ -123,24 +126,28 @@ class PMPDriverRunDiags(object):
             pass
 
         def regions_loop(self):
+            #print 'self.regions_specs: ', self.regions_specs
             print '1111111111111'
             self.set_regions_dic()
             self.set_region_specs()
+            print 'self.regions_specs: ', self.regions_specs
             print '2222222222222'
+
             print 'regions_specs, ', self.regions_specs
             print 'regions_dic[var]: ', self.regions_dic[self.var]
             for self.region in self.regions_dic[self.var]:
                 if isinstance(self.region, basestring):
                     self.region_name = self.region
                     print 'region 1: ', self.region
-                    self.region = self.regions_specs.get(
+                    '''self.region = self.regions_specs.get(
                         self.region_name,
                         self.regions_specs.get(
                         self.region_name.lower()
                         )
-                    )
+                    )'''
                     print 'region 2: ', self.region
-                    self.region['id'] = self.region_name
+                    print "self.region['id']: ", self.region['id']
+                    #self.region['id'] = self.region_name
                 elif self.region is None:
                     self.region_name = 'global'
                 else:
@@ -152,6 +159,15 @@ class PMPDriverRunDiags(object):
             print 'YOURE ALMOST DONE'
 
         def run_diags(self):
+            '''
+            path = 'default_regions.py'
+            filething = self.load_path_as_file_obj(path)
+            try:
+                execfile(filething.name)
+            except:
+                print 'oops'
+            print 'self.regions_specs: ', self.regions_specs
+            '''
             for var_long_name in self.parameter.vars:
                 self.metrics_def_dictionary = collections.OrderedDict()
                 self.metrics_dictionary = collections.OrderedDict()
