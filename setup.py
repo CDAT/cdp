@@ -7,6 +7,6 @@ setup(
     author_email="shaheen2@llnl.gov",
     description="Framework for creating climate diagnostics.",
     packages=find_packages(exclude=["*.test", "*.test.*", "test.*", "test"]),
-    package_data = {'CDP':['PMP/share/default_regions.py', 'PMP/share/disclaimer.txt', 'PMP/share/obs_info_dictionary.json']},
+    package_data = {'CDP':['PMP/share/*']},
     include_package_data=True
 )
