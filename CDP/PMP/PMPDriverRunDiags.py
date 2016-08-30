@@ -120,8 +120,25 @@ class PMPDriverRunDiags(object):
             self.regions_specs.update(self.parameter.regions_specs)
 
 
+        def set_refabbv(self):
+            if self.ref[:9] in ['default', 'alternative']:
+                self.refabbv = self.ref + 'Reference'
+            else:
+                self.refabbv = self.ref
+
+        def set_obs_var_ref(self):
+            if(isinstance(self.obs_dic[self.var][self.ref], (str, unicode))):
+                self.obs_var_ref = self.obs_dic[self.var][self.obs_dic[self.var][self.ref]]
+            else:
+                self.obs_var_ref = self.obs_dic[self.var][self.ref]
+            self.metrics_dictionary["References"][self.ref] = self.obs_var_ref
+
         def refs_loop(self):
-            pass
+            for ref in self.refs:
+                self.ref = ref
+                self.set_refabbv()
+                self.set_obs_var_ref()
+
 
         def regions_loop(self):
             self.set_regions_dic()
