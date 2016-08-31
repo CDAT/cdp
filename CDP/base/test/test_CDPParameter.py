@@ -20,7 +20,7 @@ class testCDPParameter(unittest.TestCase):
 
     def test_load_working_parameter(self):
         self.write_file('CDPParameterFile.py', 'var0 = "var0"\n')
-        self.assertEquals(None, self.cdpparameter.load_parameter_from_py('CDPParameterFile.py'))
+        self.cdpparameter.load_parameter_from_py('CDPParameterFile.py')
         self.assertEquals(self.cdpparameter.var0, 'var0')
         os.remove('CDPParameterFile.py')
 
@@ -34,6 +34,14 @@ class testCDPParameter(unittest.TestCase):
         with self.assertRaises(IOError):
             self.cdpparameter.load_parameter_from_py('thisFileDoesntExist.py')
 
+    def test_load_parameter_with_import_in_file(self):
+        self.write_file('CDPParameterFile2.py', 'import datetime\ndatetime.datetime.now()\n')
+        try:
+            self.cdpparameter.load_parameter_from_py('CDPParameterFile2.py')
+        except:
+            self.fail('Test failed with import statement in parameter file.')
+        finally:
+            os.remove('CDPParameterFile2.py')
 
 if __name__ == '__main__':
     unittest.main()
