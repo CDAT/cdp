@@ -1,5 +1,6 @@
 import abc
 
+
 class CDPDriver(object):
     __metaclass__ = abc.ABCMeta
 
@@ -7,22 +8,21 @@ class CDPDriver(object):
         self.parameter = parameter
         self.tools = tools
 
-    def set_parameter(p):
+    def set_parameter(self, p):
         self.parameter = p
 
-    def get_parameter():
+    def get_parameter(self):
         return self.parameter
 
     def set_tools(self, *tools):
         self.tools = list(tools)
 
-    def get_tools():
+    def get_tools(self):
         return self.tools
-
 
     @abc.abstractmethod
     def check_parameter():
-        """Check that self.parameter has the correct information for this driver."""
+        """Check that parameter has the correct information for this driver."""
         raise NotImplementedError()
 
     @abc.abstractmethod

@@ -1,21 +1,22 @@
 import abc
 
+
 class CDPOutput(object):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, parameter):
         self.parameter = parameter
 
-    def set_parameter(p):
+    def set_parameter(self, p):
         self.parameter = p
 
-    def get_parameter():
+    def get_parameter(self):
         return self.parameter
-
 
     @abc.abstractmethod
     def check_parameter():
-        """Check that self.parameter has the correct information for this kinda of output."""
+        """Check that parameter has the correct information
+        for this kind of output."""
         raise NotImplementedError()
 
     @abc.abstractmethod
@@ -23,6 +24,6 @@ class CDPOutput(object):
         """Given parameters, create the respective output."""
         raise NotImplementedError()
 
-    def run():
-        check_parameter()
-        create_output()
+    def run(self):
+        self.check_parameter()
+        self.create_output()

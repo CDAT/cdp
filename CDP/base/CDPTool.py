@@ -1,5 +1,6 @@
 import abc
 
+
 class CDPTool(object):
     __metaclass__ = abc.ABCMeta
 

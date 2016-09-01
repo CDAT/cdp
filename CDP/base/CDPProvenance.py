@@ -1,5 +1,6 @@
 import abc
 
+
 class CDPProvenance(object):
     __metaclass__ = abc.ABCMeta
 

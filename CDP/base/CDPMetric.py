@@ -1,5 +1,6 @@
 import abc
-from CDPTool import *
+from CDP.base.CDPTool import *
+
 
 class CDPMetric(CDPTool):
     __metaclass__ = abc.ABCMeta
