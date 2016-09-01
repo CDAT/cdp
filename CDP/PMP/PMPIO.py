@@ -1,8 +1,11 @@
-import os, logging, json
+import os
+import logging
+import json
 import genutil
 import cdat_info
 import cdms2
 from CDP.base.CDPIO import *
+
 
 class CDMSDomainsEncoder(json.JSONEncoder):
     pass
@@ -31,32 +34,52 @@ class PMPIO(CDPIO, genutil.StringConstructor):
             try:
                 os.makedirs(dir_path)
             except:
-                logging.error('Could not create output directory: %s' % dir_path)
+                logging.error(
+                    'Could not create output directory: %s' % dir_path)
                 print 'Could not create output directory: %s' % dir_path
 
         if extension.lower() == 'json':
             f = open(file_name, 'w')
-            #data_dict['metrics_git_sha1'] = pcmdi_metrics.__git_sha1__
+            # data_dict['metrics_git_sha1'] = pcmdi_metrics.__git_sha1__
             data_dict['uvcdat_version'] = cdat_info.get_version()
             json.dump(data_dict, f, cls=CDMSDomainsEncoder, *args, **kwargs)
             f.close()
-            logging.info('Results saved to a %s file: %s' % (extension, file_name))
+
         elif extension.lower() in ['asc', 'ascii', 'txt']:
             f = open(file_name, 'w')
             for key in data_dict.keys():
                 f.write('%s %s\n' % (key, data_dict[key]))
             f.close()
-            logging.info('Results saved to a %s file: %s' % (extension, file_name))
+
         elif extension.lower() == 'nc':
             f = cdms2.open(file_name, 'w')
             f.write(data_dict, *args, **kwargs)
-            #f.metrics_git_sha1 = pcmdi_metrics.__git_sha1__
+            # f.metrics_git_sha1 = pcmdi_metrics.__git_sha1__
             f.uvcdat_version = cdat_info.get_version()
             f.close()
-            logging.info('Results saved to a %s file: %s' % (extension, file_name))
+
         else:
             logging.error('Unknown extension: %s' % extension)
             raise RuntimeError('Unknown extension: %s' % extension)
+
+        logging.info('Results saved to a %s file: %s' % (extension, file_name))
+
+    def set_target_grid(self, target, regrid_tool='esmf',
+                        regrid_method='linear'):
+
+        self.regrid_tool = regrid_tool
+        self.regrid_method = regrid_method
+        if target == '2.5x2.5':
+            self.target_grid = cdms2.createUniformGrid(
+                -88.875, 72, 2.5, 0, 144, 2.5
+            )
+            self.target_grid_name = target
+        elif cdms2.isGrid(target):
+            self.target_grid = target
+            self.target_grid_name = target
+        else:
+            logging.error('Unknown grid: %s' % target)
+            raise RuntimeError('Unknown grid: %s' % target)
 
 thing = PMPIO('root', 'sdfmosmdf')
 thing.write({})
