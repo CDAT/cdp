@@ -1,15 +1,12 @@
-import os, sys
-import collections
-import logging
-import json
 from CDP.base.CDPDriver import *
 from CDP.PMP.PMPDriverCheckParameter import *
 from CDP.PMP.PMPDriverRunDiags import *
 
+
 class PMPDriver(CDPDriver):
 
     def check_parameter(self):
-        #check that all of the variables used from parameter exist
+        # Check that all of the variables used from parameter exist.
         PMPDriverCheckParameter.check_parameter(self.parameter)
 
     def run_diags(self):

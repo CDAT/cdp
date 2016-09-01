@@ -1,6 +1,11 @@
 import logging
+import os
+import sys
+import json
+import collections
 from CDP.PMP.PMPDriver import *
 from CDP.PMP.PMPParameter import *
+
 
 class PMPDriverRunDiags(object):
 
@@ -8,7 +13,7 @@ class PMPDriverRunDiags(object):
             self.parameter = parameter
 
         def calculate_level(self, var_split_name):
-            #There is a height for the variable, ex: hus_850
+            # There is a height for the variable, ex: hus_850
             if len(var_split_name) > 1:
                 self.level = float(var_split_name[-1]) * 100
                 self.metrics_dictionary["Variable"]["level"] = self.level
@@ -24,17 +29,21 @@ class PMPDriverRunDiags(object):
                 print 'IOError: %s could not be loaded!' % file_path
 
             except:
-                logging.error('Unexpected error while opening file: %s' % sys.exc_info()[0])
-                print 'Unexpected error while opening file: %s' % sys.exc_info()[0]
+                logging.error('Unexpected error while opening file: '
+                              + sys.exc_info()[0])
+                print ('Unexpected error while opening file: '
+                       + sys.exc_info()[0])
             return opened_file
 
         def load_obs_dic(self):
-            obs_json_file = self.load_path_as_file_obj('obs_info_dictionary.json')
+            obs_file_name = 'obs_info_dictionary.json'
+            obs_json_file = self.load_path_as_file_obj(obs_file_name)
             self.obs_dic = json.loads(obs_json_file.read())
             obs_json_file.close()
 
         def set_regrid_and_realm_from_obs_dic_using_var(self):
-            if self.obs_dic[self.var][self.obs_dic[self.var]["default"]]["CMIP_CMOR_TABLE"] == "Omon":
+            var_def = self.obs_dic[self.var]["default"]
+            if self.obs_dic[self.var][var_def]["CMIP_CMOR_TABLE"] == "Omon":
                 self.regrid_method = self.parameter.regrid_method_ocn
                 self.regrid_tool = self.parameter.regrid_tool_ocn
                 self.table_realm = 'Omon'
@@ -62,17 +71,19 @@ class PMPDriverRunDiags(object):
 
         def set_refs(self):
             self.refs = self.parameter.ref
-            if isinstance(self.refs, list) and 'all' in [r.lower() for r in self.refs]:
+            if isinstance(self.refs, list) and \
+                            'all' in [r.lower() for r in self.refs]:
                 self.refs = 'all'
             if isinstance(self.refs, (unicode, str)):
                 if self.refs.lower() == 'all':
                     refs_list = self.obs_dic[self.var].keys()
                     self.refs = []
                     for r in refs_list:
-                        if isinstance(self.obs_dic[self.var][r], (unicode, str)):
+                        var_ref = self.obs_dic[self.var][r]
+                        if isinstance(var_ref, (unicode, str)):
                             self.refs.append(r)
                 else:
-                    self.refs = [self.refs,]
+                    self.refs = [self.refs, ]
 
         def set_regions_dic(self):
             self.regions = self.parameter.regions
@@ -84,10 +95,13 @@ class PMPDriverRunDiags(object):
             except ImportError:
                 logging.error('ImportError for cdutil, ignoring for now')
                 print 'ImportError for cdutil, ignoring for now'
-                #pass
             except:
-                logging.error('Unexpected error while running execfile(): %s' % sys.exc_info()[0])
-                print 'Unexpected error while running execfile(): %s' % sys.exc_info()[0]
+                logging.error(
+                    ('Unexpected error while running '
+                     'execfile(): %s' % sys.exc_info()[0])
+                )
+                print ('Unexpected error while running '
+                       'execfile(): %s' % sys.exc_info()[0])
 
             self.regions_dic = {}
 
@@ -96,17 +110,16 @@ class PMPDriverRunDiags(object):
                 region = self.regions.get(var, self.default_regions)
                 if not isinstance(region, (list, tuple)):
                     region = [region, ]
-                #None means use the default regions
+                # None means use the default regions.
                 if None in region:
                     region.remove(None)
                     for r in self.default_regions:
                         region.insert(0, r)
                 self.regions_dic[var] = region
 
-
         def set_region_specs(self):
             self.regions_values = {}
-            #update default region_values keys with user-defined ones
+            # Update default region_values keys with user-defined ones.
             self.regions_values.update(self.parameter.regions_values)
 
             for reg in self.regions_values:
@@ -116,9 +129,8 @@ class PMPDriverRunDiags(object):
                 else:
                     self.regions_specs[reg] = dic
 
-            # Update/overwrite default region_specs keys with user ones
+            # Update/overwrite default region_specs keys with user ones.
             self.regions_specs.update(self.parameter.regions_specs)
-
 
         def set_refabbv(self):
             if self.ref[:9] in ['default', 'alternative']:
@@ -128,10 +140,14 @@ class PMPDriverRunDiags(object):
 
         def set_obs_var_ref(self):
             if(isinstance(self.obs_dic[self.var][self.ref], (str, unicode))):
-                self.obs_var_ref = self.obs_dic[self.var][self.obs_dic[self.var][self.ref]]
+                self.obs_var_ref = \
+                    self.obs_dic[self.var][self.obs_dic[self.var][self.ref]]
             else:
                 self.obs_var_ref = self.obs_dic[self.var][self.ref]
             self.metrics_dictionary["References"][self.ref] = self.obs_var_ref
+
+        def process_obs(self):
+            pass
 
         def refs_loop(self):
             for ref in self.refs:
@@ -139,6 +155,11 @@ class PMPDriverRunDiags(object):
                 self.set_refabbv()
                 self.set_obs_var_ref()
 
+                try:
+                    self.process_obs()
+                except Exception as e:
+                    print ('Error while processing observation %s for variable'
+                           ' %s:\n\t%s' % (self.ref, self.var, str(e)))
 
         def regions_loop(self):
             self.set_regions_dic()
@@ -150,7 +171,7 @@ class PMPDriverRunDiags(object):
                     self.region = self.regions_specs.get(
                         self.region_name,
                         self.regions_specs.get(
-                        self.region_name.lower()
+                            self.region_name.lower()
                         )
                     )
                     self.region['id'] = self.region_name
@@ -158,9 +179,10 @@ class PMPDriverRunDiags(object):
                     self.region_name = 'global'
                 else:
                     logging.error("Unknown region: %s" % self.region)
-                    raise Exception ("Unknown region: %s" % self.region)
+                    raise Exception("Unknown region: %s" % self.region)
 
-                self.metrics_dictionary['RegionalMasking'][self.region_name] = self.region
+                self.metrics_dictionary['RegionalMasking'][self.region_name] \
+                    = self.region
                 self.refs_loop()
 
         def run_diags(self):

@@ -1,9 +1,10 @@
 import logging
 from CDP.base.CDPParameter import *
 
+
 class PMPParameter(CDPParameter):
     def __init__(self):
-        #Metrics run identification
+        # Metrics run identification
         self.case_id = ''
         self.model_versions = []
         self.period = ''
@@ -36,38 +37,51 @@ class PMPParameter(CDPParameter):
 
         self.custom_observations_path = ''
 
-
     def check_str(self, str_var, str_var_name):
         if type(str_var) is not str:
-            raise TypeError("%s is the wrong type. It must be a string." % str_var_name)
+            raise TypeError(
+                "%s is the wrong type. It must be a string." % str_var_name
+            )
 
         if str_var == '':
             logging.warning("%s is blank." % str_var_name)
 
-
-    def check_str_seq_in_str_list(self, str_sequence, str_sequence_name, str_vars_list):
+    def check_str_seq_in_str_list(self, str_sequence,
+                                  str_sequence_name, str_vars_list):
         if type(str_sequence) is not list and type(str_sequence) is not tuple:
-            raise TypeError("%s is the wrong type. It must be a list or tuple." % str_sequence_name)
+            raise TypeError(
+                ("%s is the wrong type. It must be a list or tuple."
+                 % str_sequence_name)
+            )
 
         for str_var in str_sequence:
             if str_var not in str_vars_list:
-                logging.warning("%s might not be a valid value in %s." % (str_var, str_sequence_name))
-
+                logging.warning(
+                    ("%s might not be a valid value in %s."
+                     % (str_var, str_sequence_name))
+                )
 
     def check_str_var_in_str_list(self, str_var, str_var_name, str_vars_list):
         if type(str_var) is not str:
-                raise TypeError("%s is the wrong type. It must be a string." % str_var_name)
+                raise TypeError(
+                    "%s is the wrong type. It must be a string." % str_var_name
+                )
 
         if str_var not in str_vars_list:
-                logging.warning("%s might not be a valid value in %s." % (str_var, str_var_name))
-
+                logging.warning(
+                    ("%s might not be a valid value in %s."
+                     % (str_var, str_var_name))
+                )
 
     def check_case_id(self):
         self.check_str(self.case_id, 'case_id')
 
     def check_model_versions(self):
-        if type(self.model_versions) is not list and type(self.model_versions) is not tuple:
-            raise TypeError("model_versions is the wrong type. It must be a list or tuple.")
+        if type(self.model_versions) is not list \
+                and type(self.model_versions) is not tuple:
+            raise TypeError(
+                "model_versions is the wrong type. It must be a list or tuple."
+            )
 
         if self.model_versions == [] or self.model_versions == ():
             logging.warning("model_versions is blank.")
@@ -79,63 +93,91 @@ class PMPParameter(CDPParameter):
         self.check_str(self.realization, 'realization')
 
     def check_vars(self):
-        vars_2d_atmos = ['clt','hfss','pr','prw','psl','rlut','rlutcs',
-            'rsdt','rsut','rsutcs','tas','tauu','tauv','ts','uas','vas']
-        vars_3d_atmos = ['hur','hus','huss','ta','ua','va','zg']
+        vars_2d_atmos = ['clt', 'hfss', 'pr', 'prw', 'psl', 'rlut',
+                         'rlutcs', 'rsdt', 'rsut', 'rsutcs', 'tas',
+                         'tauu', 'tauv', 'ts', 'uas', 'vas']
+        vars_3d_atmos = ['hur', 'hus', 'huss', 'ta', 'ua', 'va', 'zg']
         vars_2d_ocean = ['sos', 'tos', 'zos']
-        vars_non_std = ['rlwcrf','rswcrf']
-        vars_values = vars_2d_atmos + vars_3d_atmos + vars_2d_ocean + vars_non_std
+        vars_non_std = ['rlwcrf', 'rswcrf']
+        vars_values = vars_2d_atmos + vars_3d_atmos \
+            + vars_2d_ocean + vars_non_std
 
         self.check_str_seq_in_str_list(self.vars, 'vars', vars_values)
 
     def check_ref(self):
-        ref_values = ['default','all','alternate','ref3']
+        ref_values = ['default', 'all', 'alternate', 'ref3']
         self.check_str_seq_in_str_list(self.ref, 'ref', ref_values)
 
     def check_target_grid(self):
-        self.check_str_var_in_str_list(self.target_grid, 'target_grid', ['2.5x2.5'])
+        self.check_str_var_in_str_list(
+            self.target_grid, 'target_grid', ['2.5x2.5']
+        )
 
     def check_regrid_tool(self):
-        self.check_str_var_in_str_list(self.regrid_tool, 'regrid_tool', ['regrid2','esmf'])
+        self.check_str_var_in_str_list(
+            self.regrid_tool, 'regrid_tool', ['regrid2', 'esmf']
+        )
 
     def check_regrid_method(self):
-        self.check_str_var_in_str_list(self.regrid_method, 'regrid_method', ['linear','conservative'])
+        self.check_str_var_in_str_list(
+            self.regrid_method, 'regrid_method', ['linear', 'conservative']
+        )
 
     def check_regrid_tool_ocn(self):
-        self.check_str_var_in_str_list(self.regrid_tool_ocn, 'regrid_tool_ocn', ['regrid2','esmf'])
+        self.check_str_var_in_str_list(
+            self.regrid_tool_ocn, 'regrid_tool_ocn', ['regrid2', 'esmf']
+        )
 
     def check_regrid_method_ocn(self):
-        self.check_str_var_in_str_list(self.regrid_method_ocn, 'regrid_method_ocn', ['linear','conservative'])
+        self.check_str_var_in_str_list(
+            self.regrid_method_ocn, 'regrid_method_ocn',
+            ['linear', 'conservative']
+        )
 
     def check_save_mod_clims(self):
         if self.save_mod_clims is None:
-            raise ValueError("save_mod_clims cannot be None. It must be either True or False.")
+            raise ValueError(
+                "save_mod_clims cannot be None. " +
+                "It must be either True or False."
+            )
 
     def check_regions_specs(self):
         if type(self.regions_specs) is not dict:
-            raise TypeError("regions_specs is the wrong type. It must be a dictionary.")
+            raise TypeError(
+                "regions_specs is the wrong type. It must be a dictionary."
+            )
 
     def check_regions(self):
         if type(self.regions) is not dict:
-            raise TypeError("regions is the wrong type. It must be a dictionary.")
+            raise TypeError(
+                "regions is the wrong type. It must be a dictionary."
+            )
 
     def check_regions_values(self):
         if type(self.regions_values) is not dict:
-            raise TypeError("regions_values is the wrong type. It must be a dictionary.")
+            raise TypeError(
+                "regions_values is the wrong type. It must be a dictionary."
+            )
 
     def check_custom_keys(self):
         if type(self.custom_keys) is not dict:
-            raise TypeError("custom_keys is the wrong type. It must be a dictionary.")
+            raise TypeError(
+                "custom_keys is the wrong type. It must be a dictionary."
+            )
 
     def check_filename_template(self):
         self.check_str(self.filename_template, 'filename_template')
 
     def check_surface_type_land_fraction_filename_template(self):
-        self.check_str(self.surface_type_land_fraction_filename_template, 'surface_type_land_fraction_filename_template')
+        self.check_str(self.surface_type_land_fraction_filename_template,
+                       'surface_type_land_fraction_filename_template')
 
     def check_generate_surface_type_land_fraction(self):
         if self.generate_surface_type_land_fraction is None:
-            raise ValueError("generate_surface_type_land_fraction cannot be None. It must be either True or False.")
+            raise ValueError(
+                ("generate_surface_type_land_fraction cannot"
+                 "be None. It must be either True or False.")
+            )
 
     def check_mod_data_path(self):
         self.check_str(self.mod_data_path, 'mod_data_path')
@@ -147,16 +189,19 @@ class PMPParameter(CDPParameter):
         self.check_str(self.metrics_output_path, 'metrics_output_path')
 
     def check_model_clims_interpolated_output(self):
-        self.check_str(self.model_clims_interpolated_output, 'model_clims_interpolated_output')
+        self.check_str(self.model_clims_interpolated_output,
+                       'model_clims_interpolated_output')
 
     def check_filename_output_template(self):
-        self.check_str(self.filename_output_template, 'filename_output_template')
+        self.check_str(self.filename_output_template,
+                       'filename_output_template')
 
     def check_custom_observations_path(self):
-        self.check_str(self.custom_observations_path, 'custom_observations_path')
+        self.check_str(self.custom_observations_path,
+                       'custom_observations_path')
 
     def check_values(self):
-        #check that all of the variables in __init__() have a valid value
+        # Check that all of the variables in __init__() have a valid value
         self.check_case_id()
         self.check_model_versions()
         self.check_period()

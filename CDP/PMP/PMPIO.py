@@ -20,6 +20,9 @@ class PMPIO(CDPIO, genutil.StringConstructor):
     def read(self):
         pass
 
+    def __call__(self):
+        return os.path.abspath(genutil.StringConstructor.__call__(self))
+
     def write(self, data_dict, extension='json', *args, **kwargs):
         file_name = os.path.abspath(self()) + '.' + extension
         dir_path = os.path.split(file_name)[0]
