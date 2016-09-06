@@ -8,7 +8,12 @@ from CDP.base.CDPIO import *
 
 
 class CDMSDomainsEncoder(json.JSONEncoder):
-    pass
+    def default(self, o):
+        components = o.components()[0].kargs
+        args = '.'.join(
+            ['%s=%s' % (key, val) for key, val in components.iteritems()]
+        )
+        return {o.id: 'cdutil.region.domain(%s)' % args}
 
 
 class PMPIO(CDPIO, genutil.StringConstructor):
