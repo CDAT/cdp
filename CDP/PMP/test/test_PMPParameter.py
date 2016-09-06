@@ -83,7 +83,8 @@ class testPMPParameter(unittest.TestCase):
             self.pmp_parameter.check_filename_template()
 
     def test_check_surface_type_land_fraction_filename_template_with_nonstr_value(self):
-        self.pmp_parameter.surface_type_land_fraction_filename_template = ['%(variable)_%(period)']
+        self.pmp_parameter.surface_type_land_fraction_filename_template \
+            = ['%(variable)_%(period)']
         with self.assertRaises(TypeError):
             self.pmp_parameter.check_surface_type_land_fraction_filename_template()
 
@@ -108,7 +109,8 @@ class testPMPParameter(unittest.TestCase):
             self.pmp_parameter.check_metrics_output_path()
 
     def test_check_model_clims_interpolated_output_with_nonstr_value(self):
-        self.pmp_parameter.model_clims_interpolated_output = ['%(variable)_%(period)']
+        self.pmp_parameter.model_clims_interpolated_output \
+            = ['%(variable)_%(period)']
         with self.assertRaises(TypeError):
             self.pmp_parameter.check_model_clims_interpolated_output()
 
@@ -118,7 +120,8 @@ class testPMPParameter(unittest.TestCase):
             self.pmp_parameter.check_filename_output_template()
 
     def test_check_check_custom_observations_path_with_nonstr_value(self):
-        self.pmp_parameter.custom_observations_path = ['/path/to/some/file.json']
+        self.pmp_parameter.custom_observations_path \
+            = ['/path/to/some/file.json']
         with self.assertRaises(TypeError):
             self.pmp_parameter.check_custom_observations_path()
 

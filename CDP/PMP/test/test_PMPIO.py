@@ -1,9 +1,11 @@
 import unittest
 import os
 import sys
+import shutil
 import MV2
 import cdms2
 from CDP.PMP.PMPIO import *
+
 
 class testPMPIO(unittest.TestCase):
 
@@ -40,11 +42,22 @@ class testPMPIO(unittest.TestCase):
         finally:
             os.remove(self.path + '/' + self.filename + '.nc')
 
+    def test_write_with_folders_in_path(self):
+        try:
+            path = 'deleteThis/deleteThisAlso/'
+            file_name = 'deletethis'
+            pmpio = PMPIO(path, file_name)
+            pmpio.write({})
+        except:
+            self.fail('Unable to create directories in PMPIO.write()')
+        finally:
+            shutil.rmtree('deleteThis')
+
     def test_set_target_grid_with_noncdms2_and_no_failures(self):
         try:
             self.pmp_io.set_target_grid('2.5x2.5', 'regrid2', 'linear')
         except:
-            self.fail('Error using set_target_grid(). Test failed.')
+            self.fail('Invalid grid for set_target_grid(). Test failed.')
 
     def test_set_target_grid_with_cdms2_and_no_failures(self):
         try:
@@ -53,8 +66,11 @@ class testPMPIO(unittest.TestCase):
             )
             self.pmp_io.set_target_grid(grid, 'regrid2', 'linear')
         except:
-            self.fail('Error using set_target_grid(). Test failed.')
+            self.fail('Invalid grid for set_target_grid(). Test failed.')
 
+    def test_set_target_grid_with_failing_grid(self):
+        with self.assertRaises(RuntimeError):
+            self.pmp_io.set_target_grid('whatIsThis?', 'regrid2', 'linear')
 
 if __name__ == '__main__':
     unittest.main()

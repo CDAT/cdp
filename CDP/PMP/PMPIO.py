@@ -24,6 +24,7 @@ class PMPIO(CDPIO, genutil.StringConstructor):
         self.target_mask = None
         self.file_mask_template = file_mask_template
         self.root = root
+        self.setup_cdms2()
 
     def read(self):
         pass
@@ -71,7 +72,6 @@ class PMPIO(CDPIO, genutil.StringConstructor):
 
     def set_target_grid(self, target, regrid_tool='esmf',
                         regrid_method='linear'):
-
         self.regrid_tool = regrid_tool
         self.regrid_method = regrid_method
         if target == '2.5x2.5':
@@ -85,3 +85,8 @@ class PMPIO(CDPIO, genutil.StringConstructor):
         else:
             logging.error('Unknown grid: %s' % target)
             raise RuntimeError('Unknown grid: %s' % target)
+
+    def setup_cdms2(self):
+        cdms2.setNetcdfShuffleFlag(0)  # Argument is either 0 or 1
+        cdms2.setNetcdfDeflateFlag(0)  # Argument is either 0 or 1
+        cdms2.setNetcdfDeflateLevelFlag(0)  # Argument is int between 0 and 9
