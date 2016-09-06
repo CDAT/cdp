@@ -1,6 +1,8 @@
 import unittest
 import os
+import sys
 import MV2
+import cdms2
 from CDP.PMP.PMPIO import *
 
 class testPMPIO(unittest.TestCase):
@@ -26,7 +28,7 @@ class testPMPIO(unittest.TestCase):
         try:
             self.pmp_io.write({}, extension='txt')
         except:
-            self.fail('Cannot write test file. Test failed.')
+            self.fail('Cannot write txt file. Test failed.')
         finally:
             os.remove(self.path + '/' + self.filename + '.txt')
 
@@ -37,6 +39,21 @@ class testPMPIO(unittest.TestCase):
             self.fail('Cannot write Net-CDF file. Test failed.')
         finally:
             os.remove(self.path + '/' + self.filename + '.nc')
+
+    def test_set_target_grid_with_noncdms2_and_no_failures(self):
+        try:
+            self.pmp_io.set_target_grid('2.5x2.5', 'regrid2', 'linear')
+        except:
+            self.fail('Error using set_target_grid(). Test failed.')
+
+    def test_set_target_grid_with_cdms2_and_no_failures(self):
+        try:
+            grid=cdms2.grid.createUniformGrid(
+                -90, 181, 1, 0, 361, 1, order="yx"
+            )
+            self.pmp_io.set_target_grid(grid, 'regrid2', 'linear')
+        except:
+            self.fail('Error using set_target_grid(). Test failed.')
 
 
 if __name__ == '__main__':

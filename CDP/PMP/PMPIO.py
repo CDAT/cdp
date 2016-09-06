@@ -85,4 +85,3 @@ class PMPIO(CDPIO, genutil.StringConstructor):
         else:
             logging.error('Unknown grid: %s' % target)
             raise RuntimeError('Unknown grid: %s' % target)
-
