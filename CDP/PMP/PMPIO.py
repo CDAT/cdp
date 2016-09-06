@@ -86,5 +86,3 @@ class PMPIO(CDPIO, genutil.StringConstructor):
             logging.error('Unknown grid: %s' % target)
             raise RuntimeError('Unknown grid: %s' % target)
 
-thing = PMPIO('root', 'sdfmosmdf')
-thing.write({})
