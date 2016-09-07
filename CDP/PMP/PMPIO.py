@@ -43,7 +43,6 @@ class PMPIO(CDPIO, genutil.StringConstructor):
         file_name = self()
         dir_path = os.path.split(file_name)[0]
 
-
         if not os.path.exists(dir_path):
             try:
                 os.makedirs(dir_path)
@@ -77,6 +76,41 @@ class PMPIO(CDPIO, genutil.StringConstructor):
             raise RuntimeError('Unknown extension: %s' % extension)
 
         logging.info('Results saved to a %s file: %s' % (extension, file_name))
+
+    def get_var(self, var, var_in_file=None, region={}, *args, **kwargs):
+        self.var_from_file = self.extract_var_from_file(
+            var, var_in_file, *args, **kwargs)
+
+        if region is None:
+            region = {}
+        self.value = region.get('value', None)
+        if self.is_masking():
+            self.mask_var(self.var_from_file)
+
+    def extract_var_from_file(self, var, var_in_file, *args, **kwargs):
+        if var_in_file is None:
+            var_in_file = var
+        var_file = cdms2.open(self())
+        extracted_var = var_file(var_in_file, *args, **kwargs)
+        var_file.close()
+        return extracted_var
+
+    def is_masking(self):
+        if self.value is not None:
+            return True
+        else:
+            return False
+
+    def mask_var(self, var):
+        if self.mask is None:
+            pass
+
+        if self.mask.shape != var.shape:
+            pass
+        else:
+            pass
+
+
 
     def set_target_grid(self, target, regrid_tool='esmf',
                         regrid_method='linear'):
