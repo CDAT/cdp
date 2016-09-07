@@ -24,7 +24,7 @@ class testPMPIO(unittest.TestCase):
         except:
             self.fail('Cannot write json file. Test failed.')
         finally:
-            os.remove(self.path + '/' + self.filename + '.json')
+            os.remove(self.path + self.filename + '.json')
 
     def test_write_txt_with_no_failures(self):
         try:
@@ -32,7 +32,7 @@ class testPMPIO(unittest.TestCase):
         except:
             self.fail('Cannot write txt file. Test failed.')
         finally:
-            os.remove(self.path + '/' + self.filename + '.txt')
+            os.remove(self.path + self.filename + '.txt')
 
     def test_write_nc_with_no_failures(self):
         try:
@@ -40,7 +40,7 @@ class testPMPIO(unittest.TestCase):
         except:
             self.fail('Cannot write Net-CDF file. Test failed.')
         finally:
-            os.remove(self.path + '/' + self.filename + '.nc')
+            os.remove(self.path + self.filename + '.nc')
 
     def test_write_with_folders_in_path(self):
         try:
@@ -71,6 +71,19 @@ class testPMPIO(unittest.TestCase):
     def test_set_target_grid_with_failing_grid(self):
         with self.assertRaises(RuntimeError):
             self.pmp_io.set_target_grid('whatIsThis?', 'regrid2', 'linear')
+
+    def test_hash_with_no_failures(self):
+        try:
+            path = os.path.realpath(__file__).replace('test_PMPIO.py', '')
+            filename = 'testhash.json'
+            pmpio = PMPIO(path, filename)
+            pmpio.write({})
+            pmpio.hash()
+        except:
+            self.fail('Cannot compute hash. Test failed.')
+        finally:
+            os.remove(path + filename)
+
 
 if __name__ == '__main__':
     unittest.main()

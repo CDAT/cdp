@@ -4,6 +4,7 @@ import json
 import genutil
 import cdat_info
 import cdms2
+import hashlib
 from CDP.base.CDPIO import *
 
 
@@ -24,17 +25,24 @@ class PMPIO(CDPIO, genutil.StringConstructor):
         self.target_mask = None
         self.file_mask_template = file_mask_template
         self.root = root
+        self.extension = 'json'
         self.setup_cdms2()
 
     def read(self):
         pass
 
     def __call__(self):
-        return os.path.abspath(genutil.StringConstructor.__call__(self))
+        path = os.path.abspath(genutil.StringConstructor.__call__(self))
+        if self.extension in path:
+            return path
+        else:
+            return path + '.' + self.extension
 
     def write(self, data_dict, extension='json', *args, **kwargs):
-        file_name = os.path.abspath(self()) + '.' + extension
+        self.extension = extension.lower()
+        file_name = self()
         dir_path = os.path.split(file_name)[0]
+
 
         if not os.path.exists(dir_path):
             try:
@@ -90,3 +98,13 @@ class PMPIO(CDPIO, genutil.StringConstructor):
         cdms2.setNetcdfShuffleFlag(0)  # Argument is either 0 or 1
         cdms2.setNetcdfDeflateFlag(0)  # Argument is either 0 or 1
         cdms2.setNetcdfDeflateLevelFlag(0)  # Argument is int between 0 and 9
+
+    def hash(self, block_size=65536):
+        self_file = open(self())
+        buffer = self_file.read(block_size)
+        hasher = hashlib.md5()
+        while len(buffer) > 0:
+            hasher.update(buffer)
+            buffer = self_file.read(block_size)
+        self_file.close()
+        return hasher.hexdigest()
