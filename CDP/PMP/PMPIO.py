@@ -3,6 +3,8 @@ import logging
 import json
 import genutil
 import cdat_info
+import cdutil
+import MV2
 import cdms2
 import hashlib
 from CDP.base.CDPIO import *
@@ -23,6 +25,7 @@ class PMPIO(CDPIO, genutil.StringConstructor):
         self.target_grid = None
         self.mask = None
         self.target_mask = None
+        self.regrid_tool = 'esmf'
         self.file_mask_template = file_mask_template
         self.root = root
         self.extension = 'json'
@@ -81,11 +84,14 @@ class PMPIO(CDPIO, genutil.StringConstructor):
         self.var_from_file = self.extract_var_from_file(
             var, var_in_file, *args, **kwargs)
 
-        if region is None:
-            region = {}
-        self.value = region.get('value', None)
+        self.region = region
+        if self.region is None:
+            self.region = {}
+        self.value = self.region.get('value', None)
         if self.is_masking():
-            self.mask_var(self.var_from_file)
+            self.var_from_file = self.mask_var(self.var_from_file)
+        #TODO Continue from here
+
 
     def extract_var_from_file(self, var, var_in_file, *args, **kwargs):
         if var_in_file is None:
@@ -103,14 +109,31 @@ class PMPIO(CDPIO, genutil.StringConstructor):
 
     def mask_var(self, var):
         if self.mask is None:
-            pass
-
+            self.set_file_mask_template()
+            self.mask = self.get_mask_from_var(var)
         if self.mask.shape != var.shape:
-            pass
+            dummy, mask = genutil.grower(var, self.mask)
         else:
-            pass
+            mask = self.target_mask
+        mask = MV2.not_equal(mask, self.value)
+        return MV2.masked_where(mask, var)
 
+    def set_file_mask_template(self):
+        if isinstance(self.file_mask_template, basestring):
+            self.file_mask_template = PMPIO(self.root, self.file_mask_template,
+                                            {'domain':
+                                            self.region.get('domain', None)})
 
+    def get_mask_from_var(self, var):
+        try:
+            o_mask = self.file_mask_template('sftlf')
+        except:
+            o_mask = cdutil.generateLandSeaMask(
+                var, regridTool=self.regrid_tool).filled(1.) * 100.
+            o_mask = MV2.array(o_mask)
+            o_mask.setAxis(-1, var.getLongitude())
+            o_mask.setAxis(-2, var.getLatitude())
+        return o_mask
 
     def set_target_grid(self, target, regrid_tool='esmf',
                         regrid_method='linear'):
@@ -142,9 +165,3 @@ class PMPIO(CDPIO, genutil.StringConstructor):
             buffer = self_file.read(block_size)
         self_file.close()
         return hasher.hexdigest()
-
-path = os.path.realpath(__file__).replace('PMPIO.py', '')
-filename = 'test.nc'
-pmp_io = PMPIO(path, filename)
-
-print

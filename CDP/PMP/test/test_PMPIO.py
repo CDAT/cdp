@@ -84,13 +84,24 @@ class testPMPIO(unittest.TestCase):
         finally:
             os.remove(path + filename)
 
-    def test_extract_var_from_file(self):
+    def test_extract_var_from_file_with_no_failures(self):
         try:
             stuff_to_write = cdms2.open(self.path + 'test_file.nc')['sftlf']
             self.pmp_io.write(stuff_to_write, extension='nc')
             self.pmp_io.extract_var_from_file('sftlf', None)
         except:
             self.fail('Error executing extract_var_from_file(). Test failed.')
+        finally:
+            os.remove(self.path + self.filename + '.nc')
+
+    def test_get_mask_from_var_with_no_failures(self):
+        try:
+            stuff_to_write = cdms2.open(self.path + 'test_file.nc')['sftlf']
+            self.pmp_io.write(stuff_to_write, extension='nc')
+            var = self.pmp_io.extract_var_from_file('sftlf', None)
+            self.pmp_io.get_mask_from_var(var)
+        except:
+            self.fail('Error executing get_mask_from_var(). Test failed.')
         finally:
             os.remove(self.path + self.filename + '.nc')
 
