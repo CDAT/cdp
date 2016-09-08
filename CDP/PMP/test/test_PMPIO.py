@@ -84,6 +84,15 @@ class testPMPIO(unittest.TestCase):
         finally:
             os.remove(path + filename)
 
+    def test_extract_var_from_file(self):
+        try:
+            stuff_to_write = cdms2.open(self.path + 'test_file.nc')['sftlf']
+            self.pmp_io.write(stuff_to_write, extension='nc')
+            self.pmp_io.extract_var_from_file('sftlf', None)
+        except:
+            self.fail('Error executing extract_var_from_file(). Test failed.')
+        finally:
+            os.remove(self.path + self.filename + '.nc')
 
 if __name__ == '__main__':
     unittest.main()

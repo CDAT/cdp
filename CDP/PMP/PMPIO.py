@@ -38,7 +38,7 @@ class PMPIO(CDPIO, genutil.StringConstructor):
         else:
             return path + '.' + self.extension
 
-    def write(self, data_dict, extension='json', *args, **kwargs):
+    def write(self, data, extension='json', *args, **kwargs):
         self.extension = extension.lower()
         file_name = self()
         dir_path = os.path.split(file_name)[0]
@@ -51,22 +51,22 @@ class PMPIO(CDPIO, genutil.StringConstructor):
                     'Could not create output directory: %s' % dir_path)
                 print 'Could not create output directory: %s' % dir_path
 
-        if extension.lower() == 'json':
+        if self.extension == 'json':
             f = open(file_name, 'w')
-            # data_dict['metrics_git_sha1'] = pcmdi_metrics.__git_sha1__
-            data_dict['uvcdat_version'] = cdat_info.get_version()
-            json.dump(data_dict, f, cls=CDMSDomainsEncoder, *args, **kwargs)
+            # data['metrics_git_sha1'] = pcmdi_metrics.__git_sha1__
+            data['uvcdat_version'] = cdat_info.get_version()
+            json.dump(data, f, cls=CDMSDomainsEncoder, *args, **kwargs)
             f.close()
 
-        elif extension.lower() in ['asc', 'ascii', 'txt']:
+        elif self.extension in ['asc', 'ascii', 'txt']:
             f = open(file_name, 'w')
-            for key in data_dict.keys():
-                f.write('%s %s\n' % (key, data_dict[key]))
+            for key in data.keys():
+                f.write('%s %s\n' % (key, data[key]))
             f.close()
 
-        elif extension.lower() == 'nc':
+        elif self.extension == 'nc':
             f = cdms2.open(file_name, 'w')
-            f.write(data_dict, *args, **kwargs)
+            f.write(data, *args, **kwargs)
             # f.metrics_git_sha1 = pcmdi_metrics.__git_sha1__
             f.uvcdat_version = cdat_info.get_version()
             f.close()
@@ -77,7 +77,7 @@ class PMPIO(CDPIO, genutil.StringConstructor):
 
         logging.info('Results saved to a %s file: %s' % (extension, file_name))
 
-    def get_var(self, var, var_in_file=None, region={}, *args, **kwargs):
+    def get_var_from_netcdf(self, var, var_in_file=None, region={}, *args, **kwargs):
         self.var_from_file = self.extract_var_from_file(
             var, var_in_file, *args, **kwargs)
 
@@ -90,7 +90,7 @@ class PMPIO(CDPIO, genutil.StringConstructor):
     def extract_var_from_file(self, var, var_in_file, *args, **kwargs):
         if var_in_file is None:
             var_in_file = var
-        var_file = cdms2.open(self())
+        var_file = cdms2.open(self(), 'r')
         extracted_var = var_file(var_in_file, *args, **kwargs)
         var_file.close()
         return extracted_var
@@ -142,3 +142,9 @@ class PMPIO(CDPIO, genutil.StringConstructor):
             buffer = self_file.read(block_size)
         self_file.close()
         return hasher.hexdigest()
+
+path = os.path.realpath(__file__).replace('PMPIO.py', '')
+filename = 'test.nc'
+pmp_io = PMPIO(path, filename)
+
+print
