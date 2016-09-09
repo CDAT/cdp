@@ -80,7 +80,8 @@ class PMPIO(CDPIO, genutil.StringConstructor):
 
         logging.info('Results saved to a %s file: %s' % (extension, file_name))
 
-    def get_var_from_netcdf(self, var, var_in_file=None, region={}, *args, **kwargs):
+    def get_var_from_netcdf(self, var, var_in_file=None,
+                            region={}, *args, **kwargs):
         self.var_from_file = self.extract_var_from_file(
             var, var_in_file, *args, **kwargs)
 
@@ -90,7 +91,12 @@ class PMPIO(CDPIO, genutil.StringConstructor):
         self.value = self.region.get('value', None)
         if self.is_masking():
             self.var_from_file = self.mask_var(self.var_from_file)
-        #TODO Continue from here
+
+        self.var_from_file = self.set_target_grid_and_mask(self.var_from_file)
+        self.var_from_file = self.set_domain(self.var_from_file)
+
+        return self.var_from_file
+
 
 
     def extract_var_from_file(self, var, var_in_file, *args, **kwargs):
@@ -117,6 +123,33 @@ class PMPIO(CDPIO, genutil.StringConstructor):
             mask = self.target_mask
         mask = MV2.not_equal(mask, self.value)
         return MV2.masked_where(mask, var)
+
+    def set_target_grid_and_mask(self, var):
+        if self.target_grid is not None:
+            var = var.regrid(self.target_grid, regridTool = self.regrid_tool,
+                             regridMethod = self.regrid_method, coordSys='deg',
+                             diag={}, periodicity=1
+                             )
+        if self.target_mask is not None:
+            if self.target_mask.shape != var.shape:
+                dummy, mask = genutil.grower(var, self.target_mask)
+            else:
+                mask = self.target_mask
+            var = MV2.masked_where(mask, var)
+
+        return var
+
+    def set_domain(self, var, region):
+        domain = region.get('domain', None)
+        if domain is not None:
+            if isinstance(domain, dict):
+                var = var(**domain)
+            elif isinstance(domain, (list, tuple)):
+                var = var(*domain)
+            elif isinstance(domain, cdms2.selectors.Selector):
+                domain.id = region.get("id", "region")
+                var = var(*[domain])
+        return var
 
     def set_file_mask_template(self):
         if isinstance(self.file_mask_template, basestring):
