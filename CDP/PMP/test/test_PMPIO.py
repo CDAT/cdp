@@ -105,5 +105,32 @@ class testPMPIO(unittest.TestCase):
         finally:
             os.remove(self.path + self.filename + '.nc')
 
+    def test_set_target_grid_and_mask_with_no_failures(self):
+        try:
+            self.pmp_io.set_target_grid('2.5x2.5')
+            stuff_to_write = cdms2.open(self.path + 'test_file.nc')['sftlf']
+            self.pmp_io.write(stuff_to_write, extension='nc')
+            var = self.pmp_io.extract_var_from_file('sftlf', None)
+            self.pmp_io.set_target_grid_and_mask_in_var(var)
+        except:
+            msg = 'Error executing set_target_grid_and_mask_in_var(). ' \
+                  + 'Test failed.'
+            self.fail(msg)
+        finally:
+            os.remove(self.path + self.filename + '.nc')
+
+    def test_set_domain_in_var_with_no_failures(self):
+        try:
+            self.pmp_io.set_target_grid('2.5x2.5')
+            stuff_to_write = cdms2.open(self.path + 'test_file.nc')['sftlf']
+            self.pmp_io.write(stuff_to_write, extension='nc')
+            var = self.pmp_io.extract_var_from_file('sftlf', None)
+            region = {'domain': {}}
+            self.pmp_io.set_domain_in_var(var, region)
+        except:
+            self.fail('Error executing set_domain_in_var(). Test failed.')
+        finally:
+            os.remove(self.path + self.filename + '.nc')
+
 if __name__ == '__main__':
     unittest.main()

@@ -93,7 +93,7 @@ class PMPIO(CDPIO, genutil.StringConstructor):
             self.var_from_file = self.mask_var(self.var_from_file)
 
         self.var_from_file = self.set_target_grid_and_mask(self.var_from_file)
-        self.var_from_file = self.set_domain(self.var_from_file)
+        self.var_from_file = self.set_domain(self.var_from_file, self.region)
 
         return self.var_from_file
 
@@ -124,7 +124,7 @@ class PMPIO(CDPIO, genutil.StringConstructor):
         mask = MV2.not_equal(mask, self.value)
         return MV2.masked_where(mask, var)
 
-    def set_target_grid_and_mask(self, var):
+    def set_target_grid_and_mask_in_var(self, var):
         if self.target_grid is not None:
             var = var.regrid(self.target_grid, regridTool = self.regrid_tool,
                              regridMethod = self.regrid_method, coordSys='deg',
@@ -139,7 +139,7 @@ class PMPIO(CDPIO, genutil.StringConstructor):
 
         return var
 
-    def set_domain(self, var, region):
+    def set_domain_in_var(self, var, region):
         domain = region.get('domain', None)
         if domain is not None:
             if isinstance(domain, dict):
