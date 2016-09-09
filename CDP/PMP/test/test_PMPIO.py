@@ -132,5 +132,16 @@ class testPMPIO(unittest.TestCase):
         finally:
             os.remove(self.path + self.filename + '.nc')
 
+    def test_get_var_from_netcdf_with_no_failures(self):
+        try:
+            self.pmp_io.set_target_grid('2.5x2.5')
+            stuff_to_write = cdms2.open(self.path + 'test_file.nc')['sftlf']
+            self.pmp_io.write(stuff_to_write, extension='nc')
+            self.pmp_io.get_var_from_netcdf('sftlf')
+        except:
+            self.fail('Error executing get_var_from_netcdf(). Test failed.')
+        finally:
+            os.remove(self.path + self.filename + '.nc')
+
 if __name__ == '__main__':
     unittest.main()
