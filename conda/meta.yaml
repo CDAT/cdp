@@ -1,0 +1,16 @@
+about:
+  home: https://github.com/UV-CDAT/CDP
+  summary: The Community Diagnostics Package (CDP) is a framework for developing new climate diagnostics. CDP allows for a modular implementation of the components required for running diagnostics. The design of CDP consists of modules to handle the user-defined parameters, metrics, provenance, file I/O, output of results and algorithms for calculating the diagnostics.
+
+package:
+  name: cdp
+  version: '1.0.0'
+
+source:
+  git_rev: v1.0.0
+  git_url: https://github.com/UV-CDAT/CDP.git
+
+requirements:
+  build:
+    - python
+    - setuptools
