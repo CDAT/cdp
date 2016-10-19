@@ -7,23 +7,21 @@ class CDPOutput(object):
     def __init__(self, parameter):
         self.parameter = parameter
 
-    def set_parameter(self, p):
-        self.parameter = p
-
-    def get_parameter(self):
-        return self.parameter
-
-    @abc.abstractmethod
-    def check_parameter():
-        """Check that parameter has the correct information
-        for this kind of output."""
-        raise NotImplementedError()
-
-    @abc.abstractmethod
-    def create_output():
-        """Given parameters, create the respective output."""
-        raise NotImplementedError()
+    def __call__(self):
+        self.run()
 
     def run(self):
+        """ Create the output based on the parameter. """
         self.check_parameter()
         self.create_output()
+
+    @abc.abstractmethod
+    def check_parameter(self):
+        """ Check that parameter has the correct information
+        for this kind of output. """
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def create_output(self):
+        """ Given the parameter, create the respective output. """
+        raise NotImplementedError()

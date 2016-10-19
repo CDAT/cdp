@@ -1,8 +1,8 @@
 import abc
-from cdp.cdp_tool import *
+import cdp.cdp_tool
 
 
-class CDPMetric(CDPTool):
+class CDPMetric(cdp.cdp_tool.CDPTool):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, var, data1, data2):
@@ -10,10 +10,10 @@ class CDPMetric(CDPTool):
         self.data1 = data1
         self.data2 = data2
 
-    @abc.abstractmethod
-    def compute(self):
-        """Compute something"""
-        raise NotImplementedError()
-
     def __call__(self):
         self.compute()
+
+    @abc.abstractmethod
+    def compute(self):
+        """ Compute the metric. """
+        raise NotImplementedError()

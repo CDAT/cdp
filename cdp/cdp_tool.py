@@ -5,6 +5,6 @@ class CDPTool(object):
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
-    def compute():
-        """Compute something"""
+    def compute(self):
+        """ Compute something. """
         raise NotImplementedError()
