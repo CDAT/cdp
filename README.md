@@ -1,3 +1,10 @@
-# Community Diagnostics Package
+<p align="center"><img src="./docs/source/cdp.png" width="480"></p>
 
-The Community Diagnostics Package (CDP) is a framework for developing new climate diagnostics. Tentatively, there is planned support for PMP, ARM, and ACME metrics.
+The Community Diagnostics Package (CDP) is a framework for creating new climate
+diagnostic packages in a generalized manner. Designed in an object-oriented
+method, CDP allows for a modular implementation of the components required for
+running diagnostics. The design of CDP consists of modules to handle the
+user-defined parameters, metrics, provenance, file I/O, output of results and
+algorithms for calculating the diagnostics.
+
+View the documentation here: http://cdp.readthedocs.io/en/latest/
