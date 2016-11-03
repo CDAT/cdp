@@ -4,16 +4,17 @@ import cdp.cdp_parameter
 
 
 class TestCDPParameter(unittest.TestCase):
+    class MyCDPParameter(cdp.cdp_parameter.CDPParameter):
+        def check_values(self):
+            pass
+
     def write_file(self, file_name, contents):
         f = open(file_name, 'w')
         f.write(contents)
         f.close()
 
     def setUp(self):
-        class MyCDPParameter(cdp.cdp_parameter.CDPParameter):
-            def check_values(self):
-                pass
-        self.cdp_parameter = MyCDPParameter()
+        self.cdp_parameter = self.MyCDPParameter()
 
     def test_load_working_parameter(self):
         self.write_file('CDPParameterFile.py', 'var0 = "var0"\n')
