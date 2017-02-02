@@ -5,7 +5,7 @@ import cdp._cache
 class CDPMetric(cdp.cdp_tool.CDPTool):
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, metric_path):
+    def __init__(self, metric_path=None):
         # metric_path: printed when this metric is used.
         #  Let's users know when a metric is called in the code.
         # _values: dictionary of the computed values. This allows for compound metrics.
@@ -18,7 +18,7 @@ class CDPMetric(cdp.cdp_tool.CDPTool):
     def __call__(self, *args, **kwargs):
         self._show_metric_information()
         if self._is_compound():
-            # Remove the 'CompoundMetric' key from the _values
+            # Remove the 'CompoundMetric' key from the _values because it's just a key with a blank value
             self._values.pop('CompoundMetric')
             # loop through and calculate all of the metrics
             for key, value in self._values.items():
@@ -26,7 +26,7 @@ class CDPMetric(cdp.cdp_tool.CDPTool):
                 self._values[key] = value(*args, **kwargs)
             return self._values
         else:
-            return self.compute(*args, **kwargs)
+            return cdp._cache.cache(self.compute, *args, **kwargs)
 
     def __add__(self, other):
         class CompoundMetric(CDPMetric):
@@ -71,7 +71,6 @@ class CDPMetric(cdp.cdp_tool.CDPTool):
         can easily identify what metrics are being used. """
         print 'Using metric: ' + self._metric_path
 
-    @cdp._cache.cache
     @abc.abstractmethod
     def compute(self):
         """ Compute the metric. """
