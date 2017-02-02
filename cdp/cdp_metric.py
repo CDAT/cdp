@@ -1,6 +1,6 @@
 import abc
 import cdp.cdp_tool
-
+import cdp._cache
 
 class CDPMetric(cdp.cdp_tool.CDPTool):
     __metaclass__ = abc.ABCMeta
@@ -71,6 +71,7 @@ class CDPMetric(cdp.cdp_tool.CDPTool):
         can easily identify what metrics are being used. """
         print 'Using metric: ' + self._metric_path
 
+    @cdp._cache.cache
     @abc.abstractmethod
     def compute(self):
         """ Compute the metric. """
