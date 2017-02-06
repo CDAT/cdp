@@ -1,6 +1,6 @@
 <p align="center"><img src="./docs/source/cdp.png" width="480"></p>
 [![Anaconda-Server Badge](https://anaconda.org/uvcdat/cdp/badges/downloads.svg)](https://anaconda.org/uvcdat/cdp)
-[![Build Status](https://travis-ci.org/UV-CDAT/CDP.svg?branch=master)](https://travis-ci.org/UV-CDAT/CDP)
+[![Build Status](https://travis-ci.org/UV-CDAT/cdp.svg?branch=master)](https://travis-ci.org/UV-CDAT/cdp)
 [![Docs Status](https://readthedocs.org/projects/cdp/badge)](https://cdp.readthedocs.io/en/latest/)
 
 
