@@ -3,6 +3,29 @@ import cdp.cdp_tool
 import cdp._cache
 
 class CDPMetric(cdp.cdp_tool.CDPTool):
+    """
+    Abstract class for defining metrics.
+
+    Below is an example on how to create your own metric.
+
+    >>> import cdp.cdp_metric
+    >>> class MyMetric(cdp.cdp_metric.CDPMetric):
+    ...    def __init__(self):
+    ...       metric_path = 'something'
+    ...       super(MyMetric, self).__init__(metric_path)
+    ...    def compute(self, a, b):
+    ...       return a + b
+    ...
+
+    Now this is how you use the metric. The compute function is automatically
+    called when you __call__() the function object.
+
+    >>> my_metric = MyMetric()
+    >>> my_metric(1, 2)
+    Using metric: something
+    3
+    """
+
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, metric_path=None):
@@ -75,3 +98,7 @@ class CDPMetric(cdp.cdp_tool.CDPTool):
     def compute(self):
         """ Compute the metric. """
         raise NotImplementedError()
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
