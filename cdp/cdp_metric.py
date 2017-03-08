@@ -49,7 +49,8 @@ class CDPMetric(cdp.cdp_tool.CDPTool):
                 self._values[key] = value(*args, **kwargs)
             return self._values
         else:
-            return cdp._cache.cache(self.compute, *args, **kwargs)
+            #return cdp._cache.cache(self.compute, *args, **kwargs)
+	    return self.compute(*args, **kwargs)
 
     def __add__(self, other):
         class CompoundMetric(CDPMetric):
