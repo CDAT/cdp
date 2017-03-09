@@ -13,9 +13,12 @@ class CDPParser(argparse.ArgumentParser):
         self._parameter = parameter_cls()
         self._args_namespace = None
 
-    def get_parameter(self):
+    def get_parameter(self, default_vars=True):
         """ Returns the parameter created by
         the command line inputs """
+
+    	if not default_vars:  # remove all of the variables
+    	    self._parameter.__dict__.clear()
 
         if self._args_namespace is None:
             self._args_namespace = self.parse_args()
