@@ -26,7 +26,7 @@ class OutputViewer(object):
         cols = []
         for arg in args[1:]:
             cols.append(arg)
-        file_path = os.path.abspath(kwargs.pop('file_name', ''))
+        file_path = os.path.abspath(kwargs['file_name'])
         cols.append(OutputFile(file_path))
 
         if self.group is None:

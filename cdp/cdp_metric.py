@@ -29,13 +29,13 @@ class CDPMetric(cdp.cdp_tool.CDPTool):
 
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self):
+    def __init__(self, metric_name=None):
         #  metric_info: information displayed when the metric is used.
         # _values: dictionary of the computed values. This allows for compound metrics.
         self.metric_info = None
-
-        metric_name = sys.modules[self.__class__.__module__].__file__  # gets the path of the file
-        metric_name = metric_name.split('/')[-1].split('.')[0]  # get the 'filename' from /path/to/filename.py
+        if metric_name is None:
+            metric_name = sys.modules[self.__class__.__module__].__file__  # gets the path of the file
+            metric_name = metric_name.split('/')[-1].split('.')[0]  # get the 'filename' from /path/to/filename.py
         self._values = {metric_name: self}
 
     def __call__(self, *args, **kwargs):
