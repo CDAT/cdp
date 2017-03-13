@@ -1,4 +1,5 @@
 import abc
+import sys
 import cdp.cdp_tool
 import cdp._cache
 
@@ -28,21 +29,21 @@ class CDPMetric(cdp.cdp_tool.CDPTool):
 
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, metric_path=None):
-        # metric_path: printed when this metric is used.
-        #  Let's users know when a metric is called in the code.
+    def __init__(self):
+        #  metric_info: information displayed when the metric is used.
         # _values: dictionary of the computed values. This allows for compound metrics.
-        self._metric_path = metric_path
-        # get the 'filename' from /path/to/filename.py
-        name_with_py = self._metric_path.split('/')[-1]
-        name = name_with_py.split('.')[0]
-        self._values = {name: self}
+        self.metric_info = None
+
+        metric_name = sys.modules[self.__class__.__module__].__file__  # gets the path of the file
+        metric_name = metric_name.split('/')[-1].split('.')[0]  # get the 'filename' from /path/to/filename.py
+        self._values = {metric_name: self}
 
     def __call__(self, *args, **kwargs):
         self._show_metric_information()
         if self._is_compound():
-            # Remove the 'CompoundMetric' key from the _values because it's just a key with a blank value
-            self._values.pop('CompoundMetric')
+            # Remove the 'cdp_metric' key from the _values because 
+            # it's just a key with a blank value created when there's a compound metric
+            self._values.pop('cdp_metric')
             # loop through and calculate all of the metrics
             for key, value in self._values.items():
                 # replaces the function with the actual value
@@ -50,13 +51,13 @@ class CDPMetric(cdp.cdp_tool.CDPTool):
             return self._values
         else:
             #return cdp._cache.cache(self.compute, *args, **kwargs)
-	    return self.compute(*args, **kwargs)
+	        return self.compute(*args, **kwargs)
 
     def __add__(self, other):
         class CompoundMetric(CDPMetric):
             def compute(self):
                 pass
-        compound_metric = CompoundMetric('CompoundMetric')
+        compound_metric = CompoundMetric()
         self._add_values_dict_into_first(compound_metric, self)
         self._add_values_dict_into_first(compound_metric, other)
         return compound_metric
@@ -67,7 +68,7 @@ class CDPMetric(cdp.cdp_tool.CDPTool):
                 pass
         if not self._is_compound():
             raise TypeError('First operand must be a CompoundMetric')
-        compound_metric = CompoundMetric('CompoundMetric')
+        compound_metric = CompoundMetric()
         self._add_values_dict_into_first(compound_metric, self)
         self._subtract_values_dict_into_first(compound_metric, other)
         return compound_metric
@@ -93,7 +94,13 @@ class CDPMetric(cdp.cdp_tool.CDPTool):
     def _show_metric_information(self):
         """ Displays information about this metric so that a user
         can easily identify what metrics are being used. """
-        print 'Using metric: ' + self._metric_path
+        if self.metric_info:
+            print self.metric_info
+
+    def set_metric_info(self, info):
+        ''' Sets a message to be displayed everytime 
+        a metric is called. Useful for debugging. '''
+        self.metric_info = info
 
     @abc.abstractmethod
     def compute(self):
