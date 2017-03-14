@@ -27,19 +27,26 @@ class TestCDPMetric(unittest.TestCase):
             self.fail('Failure during call compute(): %s' % err)
 
     def test_add(self):
-        sub = TestCDPMetric.Sub('sub')
-        add = TestCDPMetric.Add('add')
-        new_metric = sub + add
-        result = new_metric(2, 1)
-        self.assertDictEqual(result, {'add':3, 'sub':1})
+        try:
+            sub = TestCDPMetric.Sub('sub')
+            add = TestCDPMetric.Add('add')
+            new_metric = sub + add
+            result = new_metric(2, 1)
+            self.assertDictEqual(result, {'add':3, 'sub':1})
+        except Exception as err:
+            self.fail('Failure during metric addition: %s' % err)
 
     def test_sub(self):
-        sub = TestCDPMetric.Sub('sub')
-        add = TestCDPMetric.Add('add')
-        compound_metric = sub + add
-        new_metric = compound_metric - sub
-        result = new_metric(2, 1)
-        self.assertDictEqual(result, {'add':3})
+        try:
+            sub = TestCDPMetric.Sub('sub')
+            add = TestCDPMetric.Add('add')
+            compound_metric = sub + add
+            new_metric = compound_metric - sub
+            result = new_metric(2, 1)
+            self.assertDictEqual(result, {'add':3})
+        except Exception as err:
+            self.fail('Failure during metric subtraction: %s' % err)
+
 
     def test_is_compound(self):
         sub = TestCDPMetric.Sub()
