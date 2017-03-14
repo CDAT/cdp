@@ -5,18 +5,10 @@ import cdp.cdp_metric
 class TestCDPMetric(unittest.TestCase):
 
     class Add(cdp.cdp_metric.CDPMetric):
-        def __init__(self):
-            metric_path = 'add'
-            super(TestCDPMetric.Add, self).__init__(metric_path)
-
         def compute(self, a1, a2):
             return a1 + a2
 
     class Sub(cdp.cdp_metric.CDPMetric):
-        def __init__(self):
-            metric_path = 'sub'
-            super(TestCDPMetric.Sub, self).__init__(metric_path)
-
         def compute(self, s1, s2):
             return s1 - s2
 
@@ -36,8 +28,8 @@ class TestCDPMetric(unittest.TestCase):
 
     def test_add(self):
         try:
-            sub = TestCDPMetric.Sub()
-            add = TestCDPMetric.Add()
+            sub = TestCDPMetric.Sub('sub')
+            add = TestCDPMetric.Add('add')
             new_metric = sub + add
             result = new_metric(2, 1)
             self.assertDictEqual(result, {'add':3, 'sub':1})
@@ -46,14 +38,15 @@ class TestCDPMetric(unittest.TestCase):
 
     def test_sub(self):
         try:
-            sub = TestCDPMetric.Sub()
-            add = TestCDPMetric.Add()
+            sub = TestCDPMetric.Sub('sub')
+            add = TestCDPMetric.Add('add')
             compound_metric = sub + add
             new_metric = compound_metric - sub
             result = new_metric(2, 1)
             self.assertDictEqual(result, {'add':3})
         except Exception as err:
             self.fail('Failure during metric subtraction: %s' % err)
+
 
     def test_is_compound(self):
         sub = TestCDPMetric.Sub()
