@@ -13,14 +13,14 @@ text.string = str(result)
 text.height = 96
 text.halign = 'center'
 vcs_canvas.plot(text)
-vcs_canvas.png('output.png')
+#vcs_canvas.png('output.png')
 
 viewer = OutputViewer(index_name='My Cool Results')
 # 'My Results' is the title of the page in the index. 'Generated File' is the column for each group.
-viewer.add_page("My Results", ['Generated File'])
+viewer.add_page("My Results", ['Description', 'Generated File'])
 viewer.add_group('Results of addition')
-viewer.add_row('Result of 1 + 1', file_name='output.png')
-viewer.add_row('Another Result', file_name='output.png')
-viewer.add_group('Results of sub')
-viewer.add_row('sub2', file_name='output.png')
+viewer.add_row('Result of 1 + 1', 'Some description for add', file_name='output.png')
+viewer.add_row('Another Result', 'Another description for add', file_name='output.png')
+viewer.add_group('Results of subtraction')
+viewer.add_row('Some Result', 'Some description for sub', file_name='output.png')
 viewer.generate_viewer()
