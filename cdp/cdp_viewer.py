@@ -32,7 +32,8 @@ class OutputViewer(object):
         for arg in args[1:]:
             cols.append(arg)
         file_path = os.path.abspath(kwargs['file_name'])
-        cols.append(OutputFile(file_path))
+        title = kwargs['file_title'] if 'file_title' in kwargs else kwargs['file_name']
+        cols.append(OutputFile(file_path, title=title))
 
         if self.group is None:
             self.group = OutputGroup('Variables for this data set')
