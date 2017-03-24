@@ -9,11 +9,18 @@ class OutputViewer(object):
     def __init__(self, path='.', index_name='Results'):
         self.path = os.path.abspath(path)
         self.index = OutputIndex(index_name)
+        self.page = None
         self.group = None
         self.groups = {}
-        self.page = None
+        self.row = None
+
+    def add_page(self, name, cols):
+        ''' Add a page to the viewer's index. '''
+        self.page = OutputPage(name, cols)
+        self.index.addPage(self.page)
 
     def add_group(self, name):
+        ''' Add a group to the current page. '''
         if name not in self.groups:
             self.group = OutputGroup(name)
             self.groups[name] = self.group
@@ -21,28 +28,31 @@ class OutputViewer(object):
         else:
             self.group = self.groups[name]
 
-    def add_page(self, name, cols):
-        self.page = OutputPage(name, cols)
-        self.index.addPage(self.page)
-
-    def add_row(self, *args, **kwargs):
-        ''' Adds a description and all of the files in self.path to an
-        OutputRow, which is then added to the current page'''
+    def add_row(self, name):
+        ''' Add a row with the title name to the current group. '''
         cols = []
-        for arg in args[1:]:
-            cols.append(arg)
-        file_path = os.path.abspath(kwargs['file_name'])
-        title = kwargs['file_title'] if 'file_title' in kwargs else kwargs['file_name']
-        cols.append(OutputFile(file_path, title=title))
+        cols.append(name)
 
         if self.group is None:
             self.group = OutputGroup('Variables for this data set')
             self.page.addGroup(self.group)
         if self.page is not None:
-            row = OutputRow(args[0], cols)
-            self.page.addRow(row, len(self.page.groups)-1)
+            self.row = OutputRow(name, [])
+            self.page.addRow(self.row, len(self.page.groups)-1)
         else:
             raise RuntimeError('You need to add a page with add_page() before calling add_row()')
+
+    def add_cols(self, cols):
+        ''' Add multiple string cols to the current row. '''
+        self.row.columns.append(cols)
+
+    def add_col(self, col, is_file=False, **kwargs):
+        ''' Add a single col to the current row. Set is_file to True if the col is a file path. '''
+        if is_file:
+            file_path = os.path.abspath(col)
+            self.row.columns.append(OutputFile(file_path, **kwargs))
+        else:
+            self.row.columns.append(col)
 
     def generate_viewer(self):
         self.index.toJSON(os.path.join(self.path, "index.json"))
