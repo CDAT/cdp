@@ -25,7 +25,7 @@ class OutputViewer(object):
     def set_page(self, name):
         ''' Sets the page with the title name as the current page. '''
         if name in self.pages.keys():
-            return self.pages[name]
+            self.page = self.pages[name]
         else:
             raise RuntimeError('There is no page titled: %s' % name)
 
@@ -41,7 +41,7 @@ class OutputViewer(object):
     def set_group(self, name):
         ''' Sets the group with the title name as the current group. '''
         if name in self.groups.keys():
-            return self.groups[name]
+            self.group = self.groups[name]
         else:
             raise RuntimeError('There is no group titled: %s' % name)
 
@@ -62,7 +62,7 @@ class OutputViewer(object):
     def set_row(self, name):
         ''' Sets the row with the title name as the current row. '''
         if name in self.rows.keys():
-            return self.rows[name]
+            self.row = self.rows[name]
         else:
             raise RuntimeError('There is no row titled: %s' % name)
 
