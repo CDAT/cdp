@@ -78,7 +78,7 @@ class OutputViewer(object):
         else:
             self.row.columns.append(col)
 
-    def generate_viewer(self):
+    def generate_viewer(self, prompt_user=True):
         ''' Generate the webpage and ask the user if they want to see it. '''
         self.index.toJSON(os.path.join(self.path, "index.json"))
 
@@ -87,12 +87,20 @@ class OutputViewer(object):
 
         if os.access(self.path, os.W_OK):
             default_mask = stat.S_IMODE(os.stat(self.path).st_mode)  # mode of files to be included
-            build_viewer(os.path.join(self.path, "index.json"), diag_name="My Diagnostics", default_mask=default_mask)
+            build_viewer(
+                os.path.join(self.path, "index.json"),
+                diag_name="My Diagnostics",
+                default_mask=default_mask)
 
         if os.path.exists(os.path.join(self.path, "index.html")):
-            should_open = raw_input("Viewer HTML generated at %s/index.html. Would you like to open in a browser? y/[n]: " % self.path)
-            if should_open and should_open.lower()[0] == "y":
-                import webbrowser
-                webbrowser.open("file://" + os.path.join(self.path, "index.html"))
+            if prompt_user:
+                print "Viewer HTML generated at {path}/index.html.".format(path=self.path)
+                user_promt = "Would you like to open in a browser? y/[n]: "
+                should_open = raw_input(user_promt)
+                if should_open and should_open.lower()[0] == "y":
+                    import webbrowser
+                    index_path = os.path.join(self.path, "index.html")
+                    url = "file://{path}".format(path=index_path)
+                    webbrowser.open(url)
         else:
             raise RuntimeError("Failed to generate the viewer.")
