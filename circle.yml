@@ -9,7 +9,7 @@ dependencies:
 
 test:
   override:
-    - PATH=${HOME}/miniconda/bin:${PATH} UVCDAT_ANONYMOUS_LOG=False bash ./tests/test.sh
+    - PATH=${HOME}/miniconda/bin:${PATH} UVCDAT_ANONYMOUS_LOG=False bash ./cdp/test/test.sh
     - if [ $? == 0 -a $CIRCLE_BRANCH == "master" ]; then
     - curl https://repo.continuum.io/miniconda/Miniconda2-latest-MacOSX-x86_64.sh -o miniconda.sh
     - bash miniconda.sh -b -p $HOME/miniconda
