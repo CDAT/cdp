@@ -73,8 +73,7 @@ class OutputViewer(object):
     def add_col(self, col, is_file=False, **kwargs):
         ''' Add a single col to the current row. Set is_file to True if the col is a file path. '''
         if is_file:
-            file_path = os.path.abspath(col)
-            self.row.columns.append(OutputFile(file_path, **kwargs))
+            self.row.columns.append(OutputFile(col, **kwargs))
         else:
             self.row.columns.append(col)
 
