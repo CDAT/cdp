@@ -13,7 +13,7 @@ class CDPParser(argparse.ArgumentParser):
         self._parameter = parameter_cls()
         self._args_namespace = None
 
-    def get_parameter(self, default_vars=True):
+    def get_parameter(self, default_vars=True, check_values=True):
         """ Returns the parameter created by
         the command line inputs """
 
@@ -33,7 +33,8 @@ class CDPParser(argparse.ArgumentParser):
                 # Add it to the parameter
                 setattr(self._parameter, arg_name, arg_value)
 
-        self._parameter.check_values()
+        if check_values:
+            self._parameter.check_values()
         return self._parameter
 
     def load_default_args(self):
