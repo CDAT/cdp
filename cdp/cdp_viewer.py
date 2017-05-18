@@ -2,67 +2,65 @@ import os
 import stat
 from output_viewer.build import build_viewer
 from output_viewer.utils import rechmod
-from output_viewer.index import OutputIndex, OutputPage, OutputFile, OutputRow, OutputGroup
+from output_viewer.index import OutputIndex, OutputPage, OutputFile, OutputGroup, OutputRow
 
 
 class OutputViewer(object):
     def __init__(self, path='.', index_name='Results'):
         self.path = os.path.abspath(path)
         self.index = OutputIndex(index_name)
-        self.pages = {}
+        self.cache = {}  # dict of { OutputPage: { OutputGroup: [OutputRow] } }
         self.page = None
-        self.groups = {}
         self.group = None
-        self.rows = {}
         self.row = None
 
-    def add_page(self, name, cols):
+    def add_page(self, page_name, cols):
         """Add a page to the viewer's index"""
-        if name not in self.pages:
-            self.page = OutputPage(name, cols)
-            self.pages[name] = self.page
-            self.index.addPage(self.page)
-        else:
-            self.page = self.pages[name]
+        self.page = OutputPage(page_name, cols)
+        self.cache[self.page] = {}
+        self.index.addPage(self.page)
 
-    def set_page(self, name):
+    def set_page(self, page_name):
         """Sets the page with the title name as the current page"""
-        if name in self.pages:
-            self.page = self.pages[name]
-        else:
-            raise RuntimeError('There is no page titled: %s' % name)
+        for output_page in self.cache:
+            if page_name == output_page.title:
+                self.page = output_page
+                return
+        raise RuntimeError('There is no page titled: %s' % page_name)
 
-    def add_group(self, name):
+    def add_group(self, group_name):
         """Add a group to the current page"""
-        if name not in self.groups:
-            self.group = OutputGroup(name)
-            self.groups[name] = self.group
-            self.page.addGroup(self.group)
-        else:
-            self.group = self.groups[name]
+        if self.page is None:
+            raise RuntimeError('You must first insert a page with add_page()')
+        self.group = OutputGroup(group_name)
+        if self.group not in self.cache[self.page]:
+            self.cache[self.page][self.group] = []  # group doesn't have any rows yet
+        self.page.addGroup(self.group)
 
-    def set_group(self, name):
+    def set_group(self, group_name):
         """Sets the group with the title name as the current group"""
-        if name in self.groups:
-            self.group = self.groups[name]
-        else:
-            raise RuntimeError('There is no group titled: %s' % name)
+        for output_group in self.cache[self.page]:
+            if group_name == output_group.title:
+                self.group = output_group
+                return
+        raise RuntimeError('There is no group titled: %s' % group_name)
 
-    def add_row(self, name):
+    def add_row(self, row_name):
         """Add a row with the title name to the current group"""
-        if name not in self.rows:
-            self.row = OutputRow(name, [])
-            self.rows[name] = self.row
-            self.page.addRow(self.row, len(self.page.groups)-1)
-        else:
-            self.row = self.rows[name]
+        if self.group is None:
+            raise RuntimeError('You must first insert a group with add_group()')
+        self.row = OutputRow(row_name, [])
+        if self.row not in self.cache[self.page][self.group]:
+            self.cache[self.page][self.group].append(self.row)
+        self.page.addRow(self.row, len(self.page.groups)-1)
 
-    def set_row(self, name):
+    def set_row(self, row_name):
         """Sets the row with the title name as the current row"""
-        if name in self.rows:
-            self.row = self.rows[name]
-        else:
-            raise RuntimeError('There is no row titled: %s' % name)
+        for output_row in self.cache[self.page][self.group]:
+            if row_name == output_row.title:
+                self.row = output_row
+                return
+        raise RuntimeError('There is no row titled: %s' % row_name)
 
     def add_cols(self, cols):
         """Add multiple string cols to the current row"""
