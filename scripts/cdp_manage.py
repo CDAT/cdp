@@ -6,7 +6,7 @@ import shlex
 import sys
 
 P = argparse.ArgumentParser(
-    description='Runs PCMDI Metrics Computations',
+    description='CDP-based conda packages manager',
     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
 P.add_argument(
