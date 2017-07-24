@@ -1,6 +1,5 @@
 os:
   - linux
-  # There's currently no support for OSX/macOS on travis.
 
 language: python
 python:
@@ -10,13 +9,6 @@ install:
   - python setup.py install
 
 script:
-  - bash cdp/test/test.sh
-
-after_success:
-  - sudo apt-get update
-  # We do this conditionally because it saves us some downloading if the
-  # version is the same.
-  - if [ "$TRAVIS_BRANCH" == "master" -a "$TRAVIS_PULL_REQUEST" == "false" ]; then
   - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
       wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
     else
@@ -29,7 +21,15 @@ after_success:
   - conda update -q conda
   - conda config --set anaconda_upload no
 
-  - conda install python=$TRAVIS_PYTHON_VERSION cdp cdms2 genutil -c conda-forge -c uvcdat -y
+  - conda install python=$TRAVIS_PYTHON_VERSION output_viewer -c conda-forge -c uvcdat -y
+
+  - bash cdp/test/test.sh
+
+after_success:
+  - if [ "$TRAVIS_BRANCH" == "master" -a "$TRAVIS_PULL_REQUEST" == "false" ]; then
+  - sudo apt-get update
+
+  - conda install cdp cdms2 genutil -c conda-forge -c uvcdat -y
   - export UVCDAT_ANONYMOUS_LOG=False
 
   - conda install conda-build
