@@ -7,5 +7,6 @@ setup(
     author_email="shaheen2@llnl.gov",
     description="Framework for creating scientific diagnostics.",
     packages=find_packages(exclude=["*.test", "*.test.*", "test.*", "test"]),
-    include_package_data=True
+    include_package_data=True,
+    scripts = ["scripts/cdp_manage"]
 )
