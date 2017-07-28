@@ -7,13 +7,12 @@ machine:
 dependencies:
   override:
     - python setup.py install
-    - >
-      curl https://repo.continuum.io/miniconda/Miniconda2-latest-MacOSX-x86_64.sh -o miniconda.sh
-      bash miniconda.sh -b -p $HOME/miniconda
-      ${HOME}/miniconda/bin/conda config --set always_yes yes --set changeps1 no
-      ${HOME}/miniconda/bin/conda update -q conda
-      ${HOME}/miniconda/bin/conda config --set anaconda_upload no
-      TRAVIS_OS_NAME=osx ${HOME}/miniconda/bin/conda install output_viewer -c conda-forge -c uvcdat
+    - curl https://repo.continuum.io/miniconda/Miniconda2-latest-MacOSX-x86_64.sh -o miniconda.sh
+    - bash miniconda.sh -b -p $HOME/miniconda
+    - ${HOME}/miniconda/bin/conda config --set always_yes yes --set changeps1 no
+    - ${HOME}/miniconda/bin/conda update -q conda
+    - ${HOME}/miniconda/bin/conda config --set anaconda_upload no
+    - TRAVIS_OS_NAME=osx ${HOME}/miniconda/bin/conda install output_viewer -c conda-forge -c uvcdat
 
 
 test:
