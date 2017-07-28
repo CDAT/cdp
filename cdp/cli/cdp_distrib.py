@@ -33,27 +33,26 @@ def _display_single_worker(name, worker_info):
         print s.format(stuff, worker_info[stuff]) 
     print ''
 
-parser = argparse.ArgumentParser("cdp-distrib")
+def main():
+    parser = argparse.ArgumentParser("cdp-distrib")
 
-parser.add_argument(
-    "scheduler_addr",
-    help="Address and port of the scheduler to query in the form ADDR:PORT"
-)
+    parser.add_argument(
+        "scheduler_addr",
+        help="Address and port of the scheduler to query in the form ADDR:PORT"
+    )
 
-parser.add_argument(
-    "-w",
-    "--workers",
-    action="store_true",
-    help="Display information of all of the workers on the scheduler"
-)
+    parser.add_argument(
+        "-w",
+        "--workers",
+        action="store_true",
+        help="Display information of all of the workers on the scheduler"
+    )
 
-args = parser.parse_args()
-client = Client(args.scheduler_addr)
+    args = parser.parse_args()
+    client = Client(args.scheduler_addr)
 
+    if args.workers:
+        display_workers(args.scheduler_addr, client)
 
-if args.workers:
-    display_workers(args.scheduler_addr, client)
+    client.close()
 
-
-
-client.close()
