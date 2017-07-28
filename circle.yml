@@ -20,5 +20,5 @@ test:
     - PATH=${HOME}/miniconda/bin:${PATH} UVCDAT_ANONYMOUS_LOG=False bash ./cdp/test/test.sh
     - >
       if [ $? == 0 -a $CIRCLE_BRANCH == "master" ]; then
-        TRAVIS_OS_NAME=osx PATH=${HOME}/miniconda/bin:${PATH} conda install conda-build && conda install anaconda-client && cd conda && bash nightly_conda_upload.sh
+        TRAVIS_OS_NAME=osx PATH=${HOME}/miniconda/bin:${PATH} conda install "conda-build<3" && conda install anaconda-client && cd conda && bash nightly_conda_upload.sh
       fi
