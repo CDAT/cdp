@@ -21,3 +21,5 @@ requirements:
     - setuptools
   run:
     - output_viewer
+    - dask
+    - distributed
