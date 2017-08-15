@@ -14,12 +14,12 @@ class Cache():
         return self._cache[cache_key]
 
     def cache_info(self):
-        """ Returns a string akin to what functools.lru_cache does in Python 3 """
+        """Returns a string akin to what functools.lru_cache does in Python 3"""
         return 'CacheInfo(hits=%s, misses=%s)' % (self._hits, self._misses)
 
     def clear(self):
-        """ Clears the cache. """
-        for key, value in self._cache:
+        """Clears the cache."""
+        for key, _ in self._cache:
             del self._cache[key]
 
 cache = Cache()

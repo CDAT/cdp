@@ -6,5 +6,5 @@ class CDPProvenance(object):
 
     @abc.abstractmethod
     def export_prov(self):
-        """ Export the provenance. """
+        """Export the provenance."""
         raise NotImplementedError()

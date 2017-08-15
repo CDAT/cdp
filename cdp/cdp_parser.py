@@ -14,8 +14,8 @@ class CDPParser(argparse.ArgumentParser):
         self._args_namespace = None
 
     def get_parameter(self, default_vars=True, check_values=True):
-        """ Returns the parameter created by
-        the command line inputs """
+        """Returns the parameter created by
+        the command line inputs"""
 
     	if not default_vars:  # remove all of the variables
     	    self._parameter.__dict__.clear()
@@ -38,8 +38,8 @@ class CDPParser(argparse.ArgumentParser):
         return self._parameter
 
     def load_default_args(self):
-        """ Load the default arguments for
-        the parser. """
+        """Load the default arguments for
+        the parser."""
         self.add_argument(
             '-p', '--parameters',
             type=str,
@@ -48,6 +48,6 @@ class CDPParser(argparse.ArgumentParser):
             required=False)
 
     def add_args_and_values(self, arg_list):
-        """ Used for testing. Can test args input as if they
-        were inputted from the command line. """
+        """Used for testing. Can test args input as if they
+        were inputted from the command line."""
         self._args_namespace = self.parse_args(arg_list)

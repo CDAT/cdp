@@ -6,5 +6,5 @@ class CDPTool(object):
 
     @abc.abstractmethod
     def compute(self):
-        """ Compute something. """
+        """Compute something."""
         raise NotImplementedError()

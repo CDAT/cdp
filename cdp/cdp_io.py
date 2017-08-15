@@ -6,10 +6,10 @@ class CDPIO(object):
 
     @abc.abstractmethod
     def read(self):
-        """ Read a file. """
+        """Read a file."""
         raise NotImplementedError()
 
     @abc.abstractmethod
     def write(self):
-        """ Write a file. """
+        """Write a file."""
         raise NotImplementedError()
