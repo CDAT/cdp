@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import abc
 import sys
 import cdp.cdp_tool
@@ -89,13 +91,13 @@ class CDPMetric(cdp.cdp_tool.CDPTool):
         object from the first object's _values dict. """
         for key in other_metric._values:
             if compound_metric._values.pop(key, None) is None:
-                print "Could not subtract %s metric since it's not in the first operand." % key
+                print("Could not subtract {} metric since it's not in the first operand.".format(key))
 
     def _show_metric_information(self):
         """ Displays information about this metric so that a user
         can easily identify what metrics are being used. """
         if self.metric_info:
-            print self.metric_info
+            print(self.metric_info)
 
     def set_metric_info(self, info):
         ''' Sets a message to be displayed everytime 
