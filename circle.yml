@@ -12,7 +12,7 @@ dependencies:
     - ${HOME}/miniconda/bin/conda config --set always_yes yes --set changeps1 no
     - ${HOME}/miniconda/bin/conda update -q conda
     - ${HOME}/miniconda/bin/conda config --set anaconda_upload no
-    - TRAVIS_OS_NAME=osx ${HOME}/miniconda/bin/conda install output_viewer -c conda-forge -c uvcdat
+    - TRAVIS_OS_NAME=osx ${HOME}/miniconda/bin/conda install output_viewer yaml -c conda-forge -c uvcdat
 
 
 test:
