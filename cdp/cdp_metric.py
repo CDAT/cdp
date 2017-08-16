@@ -2,10 +2,9 @@ from __future__ import print_function
 
 import abc
 import sys
-import cdp.cdp_tool
 import cdp._cache
 
-class CDPMetric(cdp.cdp_tool.CDPTool):
+class CDPMetric(object):
     """
     Abstract class for defining metrics.
 
