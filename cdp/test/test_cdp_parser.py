@@ -91,7 +91,36 @@ class TestCDPParser(unittest.TestCase):
         finally:
             if os.path.exists('diags.json'):
                 os.remove('diags.json')
-                
+        
+    def test_get_other_parameters_with_many_jsons(self):
+        json_str = '''
+            {
+                "mydiags": [
+                    {
+                        "param1": 1,
+                        "param2": 2
+                    },
+                    {
+                        "param1": "one",
+                        "param2": "two"
+                    }
+                ]
+            }
+        '''
+  
+        try:
+            self.write_file('diags.json', json_str)
+            self.write_file('diags1.json', json_str)
+            self.cdp_parser.add_args_and_values(['-d', 'diags.json', 'diags1.json'])
+            p = self.cdp_parser.get_other_parameters()
+
+            self.assertEquals(len(p), 4)
+
+        finally:
+            if os.path.exists('diags.json'):
+                os.remove('diags.json')
+            if os.path.exists('diags1.json'):
+                os.remove('diags1.json')
 
 if __name__ == '__main__':
     unittest.main()

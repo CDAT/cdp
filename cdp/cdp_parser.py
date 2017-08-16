@@ -52,9 +52,11 @@ class CDPParser(argparse.ArgumentParser):
         if self.__args_namespace is None:
             self.__args_namespace = self.parse_args()
 
-        if self.__args_namespace.other_parameters is not None:
-            with open(self.__args_namespace.other_parameters) as json_file:
-                json_data = json.loads(json_file.read())
+        files_to_open = self.__args_namespace.other_parameters
+
+        for json_file in files_to_open:
+            with open(json_file) as f:
+                json_data = json.loads(f.read())
 
             for key in json_data:
                 for single_run in json_data[key]:
@@ -73,10 +75,10 @@ class CDPParser(argparse.ArgumentParser):
 
                     parameters.append(p)
 
-            return parameters
+        if parameters == []:
+            raise RuntimeError('get_other_parameters() was called without the -d argument')
 
-        raise RuntimeError('get_other_parameters() was called without the -d argument')
-
+        return parameters
 
     def load_default_args(self):
         """Load the default arguments for the parser."""
@@ -89,6 +91,7 @@ class CDPParser(argparse.ArgumentParser):
         self.add_argument(
             '-d', '--diags',
             type=str,
+            nargs='+',
             dest='other_parameters',
             help='Path to the other user-defined parameter file',
             required=False)
