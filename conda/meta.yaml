@@ -21,4 +21,4 @@ requirements:
     - setuptools
   run:
     - output_viewer
-    - yaml
+    - pyyaml
