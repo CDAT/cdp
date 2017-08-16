@@ -122,5 +122,54 @@ class TestCDPParser(unittest.TestCase):
             if os.path.exists('diags1.json'):
                 os.remove('diags1.json')
 
+    def test_get_other_parameters_with_cfg(self):
+        cfg_str = '[Diags1]\n' 
+        cfg_str += "num = 5\n"
+        cfg_str += "str_path1 = my/output/dir\n"
+        cfg_str += "str_path2 = 'my/output/dir'\n"
+        cfg_str += 'str_path3 = "my/output/dir"\n'
+        cfg_str += 'str_list1 = ["v1", "v2", "v3"]\n'
+        cfg_str += "str_list2 = ['v1', 'v2', 'v3']\n"
+        cfg_str += "int_list = [-1, 0, 1]\n"
+        cfg_str += "float_list = [-1., 0., 1.,]\n"
+        cfg_str += "mixed_num_list = [-1., 0, 1.,]\n"
+
+    
+        try:
+            self.write_file('diags.cfg', cfg_str)
+            self.cdp_parser.add_args_and_values(['-d', 'diags.cfg'])
+            p = self.cdp_parser.get_other_parameters()[0]
+
+            self.assertIsInstance(p.num, int)
+            self.assertIsInstance(p.str_path1, str)
+            self.assertIsInstance(p.str_path2, str)
+            self.assertIsInstance(p.str_path3, str)
+
+            self.assertIsInstance(p.str_list1, list)
+            self.assertIsInstance(p.str_list1[0], str)
+            self.assertIsInstance(p.str_list1[1], str)
+            self.assertIsInstance(p.str_list1[2], str)
+
+            self.assertIsInstance(p.str_list2[0], str)
+            self.assertIsInstance(p.str_list2[1], str)
+            self.assertIsInstance(p.str_list2[2], str)
+
+            self.assertIsInstance(p.int_list[0], int)
+            self.assertIsInstance(p.int_list[1], int)
+            self.assertIsInstance(p.int_list[2], int)
+
+            self.assertIsInstance(p.float_list[0], float)
+            self.assertIsInstance(p.float_list[1], float)
+            self.assertIsInstance(p.float_list[2], float)
+
+            self.assertIsInstance(p.mixed_num_list[0], float)
+            self.assertIsInstance(p.mixed_num_list[1], int)
+            self.assertIsInstance(p.mixed_num_list[2], float)
+
+        finally:
+            if os.path.exists('diags.cfg'):
+                os.remove('diags.cfg')
+
+
 if __name__ == '__main__':
     unittest.main()

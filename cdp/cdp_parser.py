@@ -1,6 +1,8 @@
 import argparse
 import abc
 import json
+import ConfigParser
+import yaml
 
 
 class CDPParser(argparse.ArgumentParser):
@@ -45,6 +47,47 @@ class CDPParser(argparse.ArgumentParser):
 
         return parameter
 
+    def get_parameters_from_json(self, json_file, default_vars=True, check_values=True):
+        """Given a json file, return the parameters from it."""
+        with open(json_file) as f:
+            json_data = json.loads(f.read())
+
+        parameters = []
+        for key in json_data:
+            for single_run in json_data[key]:
+                p = self.__parameter_cls()
+
+                if not default_vars:  # remove all of the variables
+                    p.__dict__.clear()
+
+                for attr_name in single_run:
+                    setattr(p, attr_name, single_run[attr_name])
+
+                self.overwrite_parameters_with_cmdline_args(p)
+
+                if check_values:
+                    p.check_values()
+
+                parameters.append(p)
+
+        return parameters
+
+    def get_parameters_from_cfg(self, json_file, default_vars=True, check_values=True):
+        """Given a cfg file, return the parameters from it."""
+        parameters = []
+
+        config = ConfigParser.ConfigParser()
+        config.read(json_file)
+
+        for section in config.sections():
+            p = self.__parameter_cls()
+            for k, v in config.items(section):
+                v = yaml.safe_load(v)
+                setattr(p, k, v)
+            parameters.append(p)
+
+        return parameters
+
     def get_other_parameters(self, default_vars=True, check_values=True):
         """Returns the parameters created by -d"""
         parameters = []
@@ -54,26 +97,16 @@ class CDPParser(argparse.ArgumentParser):
 
         files_to_open = self.__args_namespace.other_parameters
 
-        for json_file in files_to_open:
-            with open(json_file) as f:
-                json_data = json.loads(f.read())
+        for diags_file in files_to_open:
+            if '.json' in diags_file:
+                params = self.get_parameters_from_json(diags_file, default_vars, check_values)
+            elif '.cfg' in diags_file:
+                params = self.get_parameters_from_cfg(diags_file, default_vars, check_values)
+            else:
+                raise RuntimeError('The parameters input file must be either a .json or .cfg file')
 
-            for key in json_data:
-                for single_run in json_data[key]:
-                    p = self.__parameter_cls()
-
-                    if not default_vars:  # remove all of the variables
-                        p.__dict__.clear()
-
-                    for attr_name in single_run:
-                        setattr(p, attr_name, single_run[attr_name])
-
-                    self.overwrite_parameters_with_cmdline_args(p)
-
-                    if check_values:
-                        p.check_values()
-
-                    parameters.append(p)
+            for p in params:
+                parameters.append(p)
 
         if parameters == []:
             raise RuntimeError('get_other_parameters() was called without the -d argument')
