@@ -190,7 +190,7 @@ class TestCDPParser(unittest.TestCase):
         py_str += 'other_num = 11\n'
         py_str += "vars = ['v1']\n"
 
-        cfg_str = '[Diags1]\n' 
+        cfg_str = '[Diags1]\n'
         cfg_str += "num = 5\n"
         cfg_str += "path = my/output/dir\n"
         cfg_str += "vars = ['v2']\n"
@@ -216,6 +216,25 @@ class TestCDPParser(unittest.TestCase):
                 os.remove('params.py')
             if os.path.exists('diags.cfg'):
                 os.remove('diags.cfg')
+
+    def test_get_parameters_with_p_only(self):
+        py_str = 'num = 10\n'
+        py_str += 'other_num = 11\n'
+        py_str += "vars = ['v1']\n"
+
+        try:
+            self.write_file('params.py', py_str)
+
+            self.cdp_parser.add_args_and_values(['-p', 'params.py'])
+            p = self.cdp_parser.get_parameters()[0]
+
+        except Exception as e:
+            print(e)
+            self.fail('get_parameters() failed when using -p.')
+
+        finally:
+            if os.path.exists('params.py'):
+                os.remove('params.py')
 
 if __name__ == '__main__':
     unittest.main()

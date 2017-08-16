@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import argparse
 import abc
 import json
@@ -107,19 +109,17 @@ class CDPParser(argparse.ArgumentParser):
 
         files_to_open = self.__args_namespace.other_parameters
 
-        for diags_file in files_to_open:
-            if '.json' in diags_file:
-                params = self.get_parameters_from_json(diags_file, default_vars, check_values)
-            elif '.cfg' in diags_file:
-                params = self.get_parameters_from_cfg(diags_file, default_vars, check_values)
-            else:
-                raise RuntimeError('The parameters input file must be either a .json or .cfg file')
+        if files_to_open is not None:
+            for diags_file in files_to_open:
+                if '.json' in diags_file:
+                    params = self.get_parameters_from_json(diags_file, default_vars, check_values)
+                elif '.cfg' in diags_file:
+                    params = self.get_parameters_from_cfg(diags_file, default_vars, check_values)
+                else:
+                    raise RuntimeError('The parameters input file must be either a .json or .cfg file')
 
-            for p in params:
-                parameters.append(p)
-
-        if parameters == []:
-            raise RuntimeError('get_other_parameters() was called without the -d argument')
+                for p in params:
+                    parameters.append(p)
 
         return parameters
 
@@ -136,7 +136,7 @@ class CDPParser(argparse.ArgumentParser):
                 if var not in vars_to_ignore:
                     parameters.__dict__[var] = orig_parameters.__dict__[var]
 
-        return other_parameters
+        return other_parameters if other_parameters != [] else [orig_parameters]
 
     def load_default_args(self):
         """Load the default arguments for the parser."""
