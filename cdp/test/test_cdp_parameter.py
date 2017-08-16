@@ -20,8 +20,10 @@ class TestCDPParameter(unittest.TestCase):
         self.write_file('CDPParameterFile.py', 'var0 = "var0"\n')
         self.cdp_parameter.load_parameter_from_py('CDPParameterFile.py')
         self.assertEquals(self.cdp_parameter.var0, 'var0')
-        os.remove('CDPParameterFile.py')
-        os.remove('CDPParameterFile.pyc')
+        if os.path.exists('CDPParameterFile.py'):
+            os.remove('CDPParameterFile.py')
+        if os.path.exists('CDPParameterFile.pyc'):
+            os.remove('CDPParameterFile.pyc')
 
     def test_load_broken_parameter_with_dot_in_path(self):
         self.write_file('CDP.Parameter.File.Wrong.py', 'var0 = "var0"\n')
@@ -39,11 +41,15 @@ class TestCDPParameter(unittest.TestCase):
                         'import datetime\ndatetime.datetime.now()\n')
         try:
             self.cdp_parameter.load_parameter_from_py('CDPParameterFile2.py')
-        except:
+        except Exception as e:
+            print(e)
             self.fail('Test failed with import statement in parameter file.')
         finally:
-            os.remove('CDPParameterFile2.py')
-            os.remove('CDPParameterFile2.pyc')
+            if os.path.exists('CDPParameterFile2.py'):
+                os.remove('CDPParameterFile2.py')
+            if os.path.exists('CDPParameterFile2.pyc'):
+                os.remove('CDPParameterFile2.pyc')
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -37,21 +37,27 @@ class TestCDPParser(unittest.TestCase):
         self.write_file('param_file.py', 'vars=["v1", "v2"]\n')
         try:
             self.cdp_parser.add_args_and_values(['-p', 'param_file.py'])
-            self.cdp_parser.get_orig_parameters()
-        except:
+            p = self.cdp_parser.get_orig_parameters()
+            self.assertTrue(hasattr(p, 'vars'))
+            self.assertEquals(p.vars, ['v1', 'v2'])
+        except Exception as e:
+            print(e)
             self.fail('Failed to load a parameter with -p.')
-        os.remove('param_file.py')
+        finally:
+            os.remove('param_file.py')
 
     def test_load_custom_args(self):
         try:
             self.cdp_parser.add_args_and_values(['-v', 'v1', 'v2'])
-        except:
+        except Exception as e:
+            print(e)
             self.fail('Failed to load variables with -v.')
 
-    def test_get_orig_parameters(self):
+    def test_get_orig_parameters_with_cmdline_args(self):
         self.cdp_parser.add_args_and_values(['-v', 'v1', 'v2'])
-        para = self.cdp_parser.get_orig_parameters()
-        self.assertTrue(para.vars, ['v1', 'v2'])
+        p = self.cdp_parser.get_orig_parameters()
+        self.assertTrue(hasattr(p, 'vars'))
+        self.assertEquals(p.vars, ['v1', 'v2'])
 
 if __name__ == '__main__':
     unittest.main()
