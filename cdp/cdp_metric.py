@@ -1,9 +1,10 @@
+from __future__ import print_function
+
 import abc
 import sys
-import cdp.cdp_tool
 import cdp._cache
 
-class CDPMetric(cdp.cdp_tool.CDPTool):
+class CDPMetric(object):
     """
     Abstract class for defining metrics.
 
@@ -74,37 +75,37 @@ class CDPMetric(cdp.cdp_tool.CDPTool):
         return compound_metric
 
     def _is_compound(self):
-        """ Determines if the current metric was a compound metric, one
-        created with the + operator. """
+        """Determines if the current metric was a compound metric, one
+        created with the + operator."""
         return len(self._values) > 1
 
     def _add_values_dict_into_first(self, compound_metric, other_metric):
-        """ Merges the _values dict of two objects of type CDPMetric
-        into the first. """
+        """Merges the _values dict of two objects of type CDPMetric
+        into the first."""
         for key, value in other_metric._values.items():
             compound_metric._values[key] = value
 
     def _subtract_values_dict_into_first(self, compound_metric, other_metric):
-        """ Removes the elements of the _values dict of the second
-        object from the first object's _values dict. """
+        """Removes the elements of the _values dict of the second
+        object from the first object's _values dict."""
         for key in other_metric._values:
             if compound_metric._values.pop(key, None) is None:
-                print "Could not subtract %s metric since it's not in the first operand." % key
+                print("Could not subtract {} metric since it's not in the first operand.".format(key))
 
     def _show_metric_information(self):
-        """ Displays information about this metric so that a user
-        can easily identify what metrics are being used. """
+        """Displays information about this metric so that a user
+        can easily identify what metrics are being used."""
         if self.metric_info:
-            print self.metric_info
+            print(self.metric_info)
 
     def set_metric_info(self, info):
-        ''' Sets a message to be displayed everytime 
-        a metric is called. Useful for debugging. '''
+        """Sets a message to be displayed everytime 
+        a metric is called. Useful for debugging."""
         self.metric_info = info
 
     @abc.abstractmethod
     def compute(self):
-        """ Compute the metric. """
+        """Compute the metric."""
         raise NotImplementedError()
 
 if __name__ == "__main__":

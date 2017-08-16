@@ -7,17 +7,14 @@ import os
 class CDPParameter(object):
     __metaclass__ = abc.ABCMeta
 
-    def __get__(self):
-        self.check_values()
-
     @abc.abstractmethod
     def check_values(self):
-        """ Check that all of the variables in
-        this parameter file are valid. """
+        """Check that all of the variables in
+        this parameter file are valid."""
         raise NotImplementedError()
 
     def load_parameter_from_py(self, parameter_file_path):
-        """ Initialize a parameter object from a Python script. """
+        """Initialize a parameter object from a Python script."""
         parameter_as_module = \
             self.import_user_parameter_file_as_module(parameter_file_path)
         self.load_parameters_from_module(parameter_as_module)
@@ -45,4 +42,4 @@ class CDPParameter(object):
         # Initialize the variables in this parameter, so the driver can
         # access them as if they were defined regularly.
         for p in user_defined_parameters:
-            exec("self." + p + " = parameter_as_module." + p)
+            self.__dict__[p] = getattr(parameter_as_module, p)
