@@ -81,9 +81,19 @@ class CDPParser(argparse.ArgumentParser):
 
         for section in config.sections():
             p = self.__parameter_cls()
+
+            if not default_vars:  # remove all of the variables
+                p.__dict__.clear()
+
             for k, v in config.items(section):
                 v = yaml.safe_load(v)
                 setattr(p, k, v)
+
+            self.overwrite_parameters_with_cmdline_args(p)
+
+            if check_values:
+                p.check_values()
+
             parameters.append(p)
 
         return parameters
@@ -112,6 +122,21 @@ class CDPParser(argparse.ArgumentParser):
             raise RuntimeError('get_other_parameters() was called without the -d argument')
 
         return parameters
+
+    def get_parameters(self, orig_parameters=None, other_parameters=[], vars_to_ignore=[], *args, **kwargs):
+        """Combine orig_parameters with all of the other_parameters, while ignoring vars_to_ignore."""
+    
+        if orig_parameters is None:
+            orig_parameters = self.get_orig_parameters(*args, **kwargs)
+        if other_parameters == []:
+            other_parameters = self.get_other_parameters(*args, **kwargs)
+            
+        for parameters in other_parameters:
+            for var in orig_parameters.__dict__:
+                if var not in vars_to_ignore:
+                    parameters.__dict__[var] = orig_parameters.__dict__[var]
+
+        return other_parameters
 
     def load_default_args(self):
         """Load the default arguments for the parser."""

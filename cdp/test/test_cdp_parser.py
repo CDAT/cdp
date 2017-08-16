@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import unittest
 import os
 import cdp.cdp_parameter
@@ -40,9 +42,11 @@ class TestCDPParser(unittest.TestCase):
             p = self.cdp_parser.get_orig_parameters()
             self.assertTrue(hasattr(p, 'vars'))
             self.assertEquals(p.vars, ['v1', 'v2'])
+
         except Exception as e:
             print(e)
             self.fail('Failed to load a parameter with -p.')
+
         finally:
             if os.path.exists('diags.json'):
                 os.remove('param_file.py')
@@ -88,6 +92,10 @@ class TestCDPParser(unittest.TestCase):
             self.assertEquals(p[1].param1, 'one')
             self.assertEquals(p[1].param2, 'two')
 
+        except Exception as e:
+            print(e)
+            self.fail('Failed to load json parameters with -d.')
+
         finally:
             if os.path.exists('diags.json'):
                 os.remove('diags.json')
@@ -116,6 +124,10 @@ class TestCDPParser(unittest.TestCase):
 
             self.assertEquals(len(p), 4)
 
+        except Exception as e:
+            print(e)
+            self.fail('Failed to load many json parameters with -d.')
+
         finally:
             if os.path.exists('diags.json'):
                 os.remove('diags.json')
@@ -134,7 +146,6 @@ class TestCDPParser(unittest.TestCase):
         cfg_str += "float_list = [-1., 0., 1.,]\n"
         cfg_str += "mixed_num_list = [-1., 0, 1.,]\n"
 
-    
         try:
             self.write_file('diags.cfg', cfg_str)
             self.cdp_parser.add_args_and_values(['-d', 'diags.cfg'])
@@ -166,10 +177,45 @@ class TestCDPParser(unittest.TestCase):
             self.assertIsInstance(p.mixed_num_list[1], int)
             self.assertIsInstance(p.mixed_num_list[2], float)
 
+        except Exception as e:
+            print(e)
+            self.fail('Failed to load cfg parameters with -d.')
+
         finally:
             if os.path.exists('diags.cfg'):
                 os.remove('diags.cfg')
 
+    def test_get_parameters(self):
+        py_str = 'num = 10\n'
+        py_str += 'other_num = 11\n'
+        py_str += "vars = ['v1']\n"
+
+        cfg_str = '[Diags1]\n' 
+        cfg_str += "num = 5\n"
+        cfg_str += "path = my/output/dir\n"
+        cfg_str += "vars = ['v2']\n"
+
+        try:
+            self.write_file('params.py', py_str)
+            self.write_file('diags.cfg', cfg_str)
+
+            self.cdp_parser.add_args_and_values(['-p', 'params.py', '-d', 'diags.cfg', '-v', 'v3'])
+            p = self.cdp_parser.get_parameters()[0]
+
+            self.assertEqual(p.num, 10)
+            self.assertEqual(p.other_num, 11)
+            self.assertEqual(p.path, 'my/output/dir')
+            self.assertEqual(p.vars, ['v3'])
+
+        except Exception as e:
+            print(e)
+            self.fail('Failed when using -p, -d, and -v together')
+
+        finally:
+            if os.path.exists('params.py'):
+                os.remove('params.py')
+            if os.path.exists('diags.cfg'):
+                os.remove('diags.cfg')
 
 if __name__ == '__main__':
     unittest.main()
