@@ -34,8 +34,8 @@ class TestCDPParser(unittest.TestCase):
         self.cdp_parser = self.MyCDPParser()
 
     def test_load_default_args(self):
-        self.write_file('param_file.py', 'vars=["v1", "v2"]\n')
         try:
+            self.write_file('param_file.py', 'vars=["v1", "v2"]\n')
             self.cdp_parser.add_args_and_values(['-p', 'param_file.py'])
             p = self.cdp_parser.get_orig_parameters()
             self.assertTrue(hasattr(p, 'vars'))
@@ -44,7 +44,8 @@ class TestCDPParser(unittest.TestCase):
             print(e)
             self.fail('Failed to load a parameter with -p.')
         finally:
-            os.remove('param_file.py')
+            if os.path.exists('diags.json'):
+                os.remove('param_file.py')
 
     def test_load_custom_args(self):
         try:
@@ -58,6 +59,39 @@ class TestCDPParser(unittest.TestCase):
         p = self.cdp_parser.get_orig_parameters()
         self.assertTrue(hasattr(p, 'vars'))
         self.assertEquals(p.vars, ['v1', 'v2'])
+    
+    def test_get_other_parameters(self):
+        json_str = '''
+            {
+                "mydiags": [
+                    {
+                        "param1": 1,
+                        "param2": 2
+                    },
+                    {
+                        "param1": "one",
+                        "param2": "two"
+                    }
+                ]
+            }
+        '''
+        try:
+            self.write_file('diags.json', json_str)
+            self.cdp_parser.add_args_and_values(['-d', 'diags.json'])
+            p = self.cdp_parser.get_other_parameters()
+
+            self.assertEquals(len(p), 2)
+            self.assertTrue(hasattr(p[0], 'param1'))
+            self.assertTrue(hasattr(p[0], 'param2'))
+            self.assertEquals(p[0].param1, 1)
+            self.assertEquals(p[0].param2, 2)
+            self.assertEquals(p[1].param1, 'one')
+            self.assertEquals(p[1].param2, 'two')
+
+        finally:
+            if os.path.exists('diags.json'):
+                os.remove('diags.json')
+                
 
 if __name__ == '__main__':
     unittest.main()

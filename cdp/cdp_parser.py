@@ -48,7 +48,9 @@ class CDPParser(argparse.ArgumentParser):
     def get_other_parameters(self, default_vars=True, check_values=True):
         """Returns the parameters created by -d"""
         parameters = []
-        self.__args_namespace = self.parse_args()
+    
+        if self.__args_namespace is None:
+            self.__args_namespace = self.parse_args()
 
         if self.__args_namespace.other_parameters is not None:
             with open(self.__args_namespace.other_parameters) as json_file:
