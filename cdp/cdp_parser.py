@@ -100,14 +100,16 @@ class CDPParser(argparse.ArgumentParser):
 
         return parameters
 
-    def get_other_parameters(self, default_vars=True, check_values=True):
-        """Returns the parameters created by -d"""
+    def get_other_parameters(self, files_to_open=[], default_vars=True, check_values=True):
+        """Returns the parameters created by -d, If files_to_open is defined, 
+        then use the path specified instead of -d"""
         parameters = []
     
         if self.__args_namespace is None:
             self.__args_namespace = self.parse_args()
 
-        files_to_open = self.__args_namespace.other_parameters
+        if files_to_open == []:
+            files_to_open = self.__args_namespace.other_parameters
 
         if files_to_open is not None:
             for diags_file in files_to_open:

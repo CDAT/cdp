@@ -22,3 +22,5 @@ requirements:
   run:
     - output_viewer
     - pyyaml
+    - dask
+    - distributed

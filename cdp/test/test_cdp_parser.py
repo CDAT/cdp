@@ -236,5 +236,45 @@ class TestCDPParser(unittest.TestCase):
             if os.path.exists('params.py'):
                 os.remove('params.py')
 
+    def test_get_other_parameters_with_file_paths(self):
+        cfg_str1 = '[Diags1]\n'
+        cfg_str1 += "num = 0\n"
+        cfg_str1 += '[Diags2]\n'
+        cfg_str1 += "num = 1\n"
+
+        cfg_str2 = '[Diags1]\n'
+        cfg_str2 += "num = 2\n"
+
+        py_str = 'num = 10\n'
+        py_str += 'other_num = 11\n'
+        py_str += "vars = ['v1']\n"
+
+        try:
+            self.write_file('diags1.cfg', cfg_str1)
+            self.write_file('diags2.cfg', cfg_str2)
+            self.write_file('params.py', py_str)
+
+            # This is called when by the user when a cdp parser is initalized,
+            # so we have do to this here.
+            self.cdp_parser.add_args_and_values(['-p', 'params.py'])
+
+            files = ['diags1.cfg', 'diags2.cfg']
+            params = self.cdp_parser.get_other_parameters(files_to_open=files)
+            self.assertEquals(len(params), 3)
+
+            for p in params:
+                if p.num not in [0, 1, 2]:
+                    self.fail('get_other_parameters() did not correctly get the jsons')
+
+        except Exception as e:
+            print(e)
+            self.fail('get_parameters() failed when using files_to_open argument.')
+
+        finally:
+            if os.path.exists('diags1.cfg'):
+                os.remove('diags1.cfg')
+            if os.path.exists('diags2.cfg'):
+                os.remove('diags2.cfg')
+
 if __name__ == '__main__':
     unittest.main()
