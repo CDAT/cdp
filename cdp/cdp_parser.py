@@ -31,7 +31,7 @@ class CDPParser(argparse.ArgumentParser):
 
         if self.__args_namespace is None:
             self.__args_namespace = self.parse_args()
-
+        
         if not default_vars:  # remove all of the variables
             parameter.__dict__.clear()
 
@@ -147,7 +147,7 @@ class CDPParser(argparse.ArgumentParser):
             type=str,
             dest='parameters',
             help='Path to the user-defined parameter file',
-            required=False)
+            required=True)
         self.add_argument(
             '-d', '--diags',
             type=str,
