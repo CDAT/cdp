@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import sys
 import argparse
 import abc
 import json
@@ -25,12 +26,20 @@ class CDPParser(argparse.ArgumentParser):
                 # Add it to the parameter
                 setattr(parameters, arg_name, arg_value)
 
+    def parse_arguments(self):
+        """Parse the command line arguments while checking for the user's arguments"""
+        if self.__args_namespace is None:
+            self.__args_namespace = self.parse_args()            
+            if self.__args_namespace.parameters is None and self.__args_namespace.other_parameters is None:
+                print('You must have either the -p or -d arguments.')
+                self.print_help()
+                sys.exit()
+
     def get_orig_parameters(self, default_vars=True, check_values=True):
         """Returns the parameters created by -p"""
         parameter = self.__parameter_cls()
 
-        if self.__args_namespace is None:
-            self.__args_namespace = self.parse_args()
+        self.parse_arguments()
         
         if not default_vars:  # remove all of the variables
             parameter.__dict__.clear()
@@ -105,8 +114,7 @@ class CDPParser(argparse.ArgumentParser):
         then use the path specified instead of -d"""
         parameters = []
     
-        if self.__args_namespace is None:
-            self.__args_namespace = self.parse_args()
+        self.parse_arguments()
 
         if files_to_open == []:
             files_to_open = self.__args_namespace.other_parameters
@@ -147,13 +155,25 @@ class CDPParser(argparse.ArgumentParser):
             type=str,
             dest='parameters',
             help='Path to the user-defined parameter file',
-            required=True)
+            required=False)
         self.add_argument(
             '-d', '--diags',
             type=str,
             nargs='+',
             dest='other_parameters',
             help='Path to the other user-defined parameter file',
+            required=False)
+        self.add_argument(
+            '-n', '--num_workers',
+            type=int,
+            dest='num_workers',
+            help='Number of workers, used when running with multiprocessing or distributedly',
+            required=False)
+        self.add_argument(
+            '--scheduler_addr',
+            type=str,
+            dest='scheduler_addr',
+            help='Address of the scheduler in the form of IP_ADDRESS:PORT. Used when running distributedly',
             required=False)
 
     def add_args_and_values(self, arg_list):
