@@ -19,6 +19,11 @@ class CDPParser(argparse.ArgumentParser):
         self.__parameter_cls = parameter_cls
         self.__args_namespace = None
 
+    def view_args(self):
+        """Returns the args namespace"""
+        self.parse_arguments()
+        return self.__args_namespace
+
     def overwrite_parameters_with_cmdline_args(self, parameters):
         """Overwrite the parameters with the user's command line arguments."""
         for arg_name, arg_value in vars(self.__args_namespace).iteritems():
@@ -36,17 +41,20 @@ class CDPParser(argparse.ArgumentParser):
                 sys.exit()
 
     def get_orig_parameters(self, default_vars=True, check_values=True):
-        """Returns the parameters created by -p"""
+        """Returns the parameters created by -p. If -p wasn't used, returns None."""
         parameter = self.__parameter_cls()
 
         self.parse_arguments()
         
+        if self.__args_namespace.parameters is None:
+            return None
+
         if not default_vars:  # remove all of the variables
             parameter.__dict__.clear()
 
-        if self.__args_namespace.parameters is not None:
-            parameter.load_parameter_from_py(
-                self.__args_namespace.parameters)
+        #if self.__args_namespace.parameters is not None:
+        parameter.load_parameter_from_py(
+            self.__args_namespace.parameters)
 
         for arg_name, arg_value in vars(self.__args_namespace).iteritems():
             if arg_value is not None:
@@ -133,20 +141,29 @@ class CDPParser(argparse.ArgumentParser):
 
         return parameters
 
-    def get_parameters(self, orig_parameters=None, other_parameters=[], vars_to_ignore=[], *args, **kwargs):
-        """Combine orig_parameters with all of the other_parameters, while ignoring vars_to_ignore."""
-    
-        if orig_parameters is None:
-            orig_parameters = self.get_orig_parameters(*args, **kwargs)
-        if other_parameters == []:
-            other_parameters = self.get_other_parameters(*args, **kwargs)
-            
+    def combine_orig_and_other_params(self, orig_parameters, other_parameters, vars_to_ignore=[]):
+        """Combine orig_parameters with all of the other_parameters, while ignoring vars_to_ignore"""
         for parameters in other_parameters:
             for var in orig_parameters.__dict__:
                 if var not in vars_to_ignore:
                     parameters.__dict__[var] = orig_parameters.__dict__[var]
 
-        return other_parameters if other_parameters != [] else [orig_parameters]
+    def get_parameters(self, orig_parameters=None, other_parameters=[], vars_to_ignore=[], *args, **kwargs):
+        """Get the parameters based on the command line arguments and return a list of them."""
+        if orig_parameters is None:
+            orig_parameters = self.get_orig_parameters(*args, **kwargs)
+        if other_parameters == []:
+            other_parameters = self.get_other_parameters(*args, **kwargs)            
+
+        if orig_parameters is not None and other_parameters == []:  # only -p
+            return [orig_parameters]
+        elif orig_parameters is None and other_parameters != []:  # only -d
+            return other_parameters
+        elif orig_parameters is not None and other_parameters != []:  # used -p and -d
+            self.combine_orig_and_other_params(orig_parameters, other_parameters, vars_to_ignore)
+            return other_parameters
+        else:
+            raise RuntimeError('This should not happen :(')
 
     def load_default_args(self):
         """Load the default arguments for the parser."""
@@ -161,6 +178,7 @@ class CDPParser(argparse.ArgumentParser):
             type=str,
             nargs='+',
             dest='other_parameters',
+            default=[],
             help='Path to the other user-defined parameter file',
             required=False)
         self.add_argument(
