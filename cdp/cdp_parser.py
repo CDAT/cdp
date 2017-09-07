@@ -163,7 +163,13 @@ class CDPParser(argparse.ArgumentParser):
             self.combine_orig_and_other_params(orig_parameters, other_parameters, vars_to_ignore)
             return other_parameters
         else:
-            raise RuntimeError('This should not happen :(')
+            raise RuntimeError("You ran your script without a '-p' or '-d' argument.")
+
+    def get_parameter(self, warning=True, *args, **kwargs):
+        """Return the first Parameter in the list of Parameters."""
+        if warning:
+            print('Deprecation warning: Use get_parameters() instead, which returns a list of Parameters.')
+        return self.get_parameters(*args, **kwargs)[0]
 
     def load_default_args(self):
         """Load the default arguments for the parser."""
