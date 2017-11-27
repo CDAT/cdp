@@ -1,4 +1,4 @@
-from __future__ import print_function
+
 
 import unittest
 import os
@@ -22,7 +22,7 @@ class TestCDPParameter(unittest.TestCase):
         try:
             self.write_file('CDPParameterFile.py', 'var0 = "var0"\n')
             self.cdp_parameter.load_parameter_from_py('CDPParameterFile.py')
-            self.assertEquals(self.cdp_parameter.var0, 'var0')
+            self.assertEqual(self.cdp_parameter.var0, 'var0')
         except Exception as e:
             print(e)
             self.fail('Test failed with working parameters file')

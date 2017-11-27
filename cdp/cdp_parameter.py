@@ -1,4 +1,4 @@
-from __future__ import print_function
+
 
 import abc
 import importlib
@@ -6,9 +6,7 @@ import sys
 import os
 
 
-class CDPParameter(object):
-    __metaclass__ = abc.ABCMeta
-
+class CDPParameter(object, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def check_values(self):
         """Check that all of the variables in

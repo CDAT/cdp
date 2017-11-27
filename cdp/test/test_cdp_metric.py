@@ -1,4 +1,4 @@
-from __future__ import print_function
+
 
 import unittest
 import cdp.cdp_metric
@@ -24,7 +24,7 @@ class TestCDPMetric(unittest.TestCase):
         try:
             sub = self.Sub()
             result = sub(2, 1)
-            self.assertEquals(result, 1)
+            self.assertEqual(result, 1)
         except Exception as err:
             self.fail('Failure during call compute(): %s' % err)
 

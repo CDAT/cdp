@@ -1,9 +1,7 @@
 import abc
 
 
-class CDPProvenance(object):
-    __metaclass__ = abc.ABCMeta
-
+class CDPProvenance(object, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def export_prov(self):
         """Export the provenance."""

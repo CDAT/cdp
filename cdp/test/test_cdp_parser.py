@@ -1,4 +1,4 @@
-from __future__ import print_function
+
 
 import unittest
 import os
@@ -41,7 +41,7 @@ class TestCDPParser(unittest.TestCase):
             self.cdp_parser.add_args_and_values(['-p', 'test_load_default_args.py'])
             p = self.cdp_parser.get_orig_parameters()
             self.assertTrue(hasattr(p, 'vars'))
-            self.assertEquals(p.vars, ['v1', 'v2'])
+            self.assertEqual(p.vars, ['v1', 'v2'])
 
         except Exception as e:
             print(e)
@@ -64,7 +64,7 @@ class TestCDPParser(unittest.TestCase):
             self.cdp_parser.add_args_and_values(['-p', 'test_get_orig_parameters_with_cmdline_args.py', '-v', 'v1', 'v2'])
             p = self.cdp_parser.get_orig_parameters()
             self.assertTrue(hasattr(p, 'vars'))
-            self.assertEquals(p.vars, ['v1', 'v2'])
+            self.assertEqual(p.vars, ['v1', 'v2'])
         except Exception as e:
             print(e)
             self.fail("Command line arguments were not added to the parameters")
@@ -92,13 +92,13 @@ class TestCDPParser(unittest.TestCase):
             self.cdp_parser.add_args_and_values(['-d', 'test_get_other_parameters.json'])
             p = self.cdp_parser.get_other_parameters()
 
-            self.assertEquals(len(p), 2)
+            self.assertEqual(len(p), 2)
             self.assertTrue(hasattr(p[0], 'param1'))
             self.assertTrue(hasattr(p[0], 'param2'))
-            self.assertEquals(p[0].param1, 1)
-            self.assertEquals(p[0].param2, 2)
-            self.assertEquals(p[1].param1, 'one')
-            self.assertEquals(p[1].param2, 'two')
+            self.assertEqual(p[0].param1, 1)
+            self.assertEqual(p[0].param2, 2)
+            self.assertEqual(p[1].param1, 'one')
+            self.assertEqual(p[1].param2, 'two')
 
         except Exception as e:
             print(e)
@@ -130,7 +130,7 @@ class TestCDPParser(unittest.TestCase):
             self.cdp_parser.add_args_and_values(['-d', 'test_get_other_parameters_with_many_jsons1.json', 'test_get_other_parameters_with_many_jsons2.json'])
             p = self.cdp_parser.get_other_parameters()
 
-            self.assertEquals(len(p), 4)
+            self.assertEqual(len(p), 4)
 
         except Exception as e:
             print(e)
@@ -266,7 +266,7 @@ class TestCDPParser(unittest.TestCase):
             self.cdp_parser.add_args_and_values(['-d', 'test_get_parameters_with_d_only.json'])
             p = self.cdp_parser.get_parameters()
 
-            self.assertEquals(len(p), 2)
+            self.assertEqual(len(p), 2)
 
         except Exception as e:
             print(e)
@@ -301,7 +301,7 @@ class TestCDPParser(unittest.TestCase):
 
             files = ['test_get_other_parameters_with_file_paths1.cfg', 'test_get_other_parameters_with_file_paths2.cfg']
             params = self.cdp_parser.get_other_parameters(files_to_open=files)
-            self.assertEquals(len(params), 3)
+            self.assertEqual(len(params), 3)
 
             for p in params:
                 if p.num not in [0, 1, 2]:

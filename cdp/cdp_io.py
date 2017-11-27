@@ -1,11 +1,9 @@
-from __future__ import print_function
+
 
 import abc
 
 
-class CDPIO(object):
-    __metaclass__ = abc.ABCMeta
-
+class CDPIO(object, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def read(self):
         """Read a file."""

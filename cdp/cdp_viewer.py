@@ -1,4 +1,4 @@
-from __future__ import print_function
+
 
 import os
 import stat
@@ -93,7 +93,7 @@ class OutputViewer(object):
             print("Viewer HTML generated at {path}/index.html".format(path=self.path))
             if prompt_user:
                 user_prompt = "Would you like to open in a browser? y/[n]: "
-                should_open = raw_input(user_prompt)
+                should_open = input(user_prompt)
                 if should_open and should_open.lower()[0] == "y":
                     import webbrowser
                     index_path = os.path.join(self.path, "index.html")
