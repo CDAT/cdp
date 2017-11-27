@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 class Cache(object):
     def __init__(self):
         self._cache = {}
@@ -15,7 +17,7 @@ class Cache(object):
 
     def cache_info(self):
         """Returns a string akin to what functools.lru_cache does in Python 3"""
-        return 'CacheInfo(hits=%s, misses=%s)' % (self._hits, self._misses)
+        return 'CacheInfo(hits={}, misses={})'.format(self._hits, self._misses)
 
     def clear(self):
         """Clears the cache."""

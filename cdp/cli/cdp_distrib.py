@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import argparse
 import socket
 from datetime import datetime
@@ -7,8 +9,8 @@ def display_workers(scheduler_addr, client):
     """Display all of the workers for the client"""
     raw_info = client.scheduler_info()
     workers_dict = raw_info['workers']
-    print 'Scheduler {} has {} workers attached to it'.format(scheduler_addr, len(workers_dict))
-    print ''
+    print('Scheduler {} has {} workers attached to it'.format(scheduler_addr, len(workers_dict)))
+    print('')
     for worker_name in sorted(workers_dict):
         _display_single_worker(worker_name, workers_dict[worker_name])
 
@@ -18,7 +20,7 @@ def _display_single_worker(name, worker_info):
     ip, port = ip_and_port.split(':')
     hostname = socket.gethostbyaddr(ip)[0]
 
-    print 'Information about worker at {}({}):{}'.format(hostname, ip, port)
+    print('Information about worker at {}({}):{}'.format(hostname, ip, port))
     # stuff_to_print = ['name', 'memory_limit', 'pid', 'last-seen', 'ncores', 'executing', 'last-task']
     stuff_to_print = ['name', 'ncores', 'executing', 'memory_limit', 'pid', 'last-task', 'last-seen']
 
@@ -30,8 +32,8 @@ def _display_single_worker(name, worker_info):
         
         if stuff in ['last-seen', 'last-task']:
             worker_info[stuff] = datetime.fromtimestamp(int(worker_info[stuff])).strftime('%Y-%m-%d %H:%M:%S')
-        print s.format(stuff, worker_info[stuff]) 
-    print ''
+        print(s.format(stuff, worker_info[stuff]))
+    print('')
 
 def main():
     parser = argparse.ArgumentParser("cdp-distrib")
