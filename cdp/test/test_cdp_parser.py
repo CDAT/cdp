@@ -1,7 +1,8 @@
-
+from __future__ import print_function
 
 import unittest
 import os
+import sys
 import cdp.cdp_parameter
 import cdp.cdp_parser
 
@@ -34,44 +35,25 @@ class TestCDPParser(unittest.TestCase):
 
     def setUp(self):
         self.cdp_parser = self.MyCDPParser()
+        # Writing files in Python 3 seems to be asynchonous or something like that.
+        # Hence we need to load pre-written files, but only *.py
+        self.prefix = 'cdp/test/parameter_files/'
 
     def test_load_default_args(self):
-        try:
-            self.write_file('test_load_default_args.py', 'vars=["v1", "v2"]\n')
-            self.cdp_parser.add_args_and_values(['-p', 'test_load_default_args.py'])
-            p = self.cdp_parser.get_orig_parameters()
-            self.assertTrue(hasattr(p, 'vars'))
-            self.assertEqual(p.vars, ['v1', 'v2'])
-
-        except Exception as e:
-            print(e)
-            self.fail('Failed to load a parameter with -p.')
-
-        finally:
-            if os.path.exists('test_load_default_args.py'):
-                os.remove('test_load_default_args.py')
+        self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_load_default_args.py'])
+        p = self.cdp_parser.get_orig_parameters()
+        self.assertTrue(hasattr(p, 'vars'))
+        self.assertEqual(p.vars, ['v1', 'v2'])
 
     def test_load_custom_args(self):
-        try:
-            self.cdp_parser.add_args_and_values(['-v', 'v1', 'v2'])
-        except Exception as e:
-            print(e)
-            self.fail('Failed to load variables with -v.')
+        self.cdp_parser.add_args_and_values(['-v', 'v1', 'v2'])
 
     def test_get_orig_parameters_with_cmdline_args(self):
-        try:
-            self.write_file('test_get_orig_parameters_with_cmdline_args.py', 'something="something"\n')
-            self.cdp_parser.add_args_and_values(['-p', 'test_get_orig_parameters_with_cmdline_args.py', '-v', 'v1', 'v2'])
-            p = self.cdp_parser.get_orig_parameters()
-            self.assertTrue(hasattr(p, 'vars'))
-            self.assertEqual(p.vars, ['v1', 'v2'])
-        except Exception as e:
-            print(e)
-            self.fail("Command line arguments were not added to the parameters")
-        finally:
-            if os.path.exists('test_get_orig_parameters_with_cmdline_args.py'):
-                os.remove('test_get_orig_parameters_with_cmdline_args.py')
-    
+        self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_get_orig_parameters_with_cmdline_args.py', '-v', 'v1', 'v2'])
+        p = self.cdp_parser.get_orig_parameters()
+        self.assertTrue(hasattr(p, 'vars'))
+        self.assertEqual(p.vars, ['v1', 'v2'])
+
     def test_get_other_parameters(self):
         json_str = '''
             {
@@ -100,10 +82,6 @@ class TestCDPParser(unittest.TestCase):
             self.assertEqual(p[1].param1, 'one')
             self.assertEqual(p[1].param2, 'two')
 
-        except Exception as e:
-            print(e)
-            self.fail('Failed to load json parameters with -d.')
-
         finally:
             if os.path.exists('test_get_other_parameters.json'):
                 os.remove('test_get_other_parameters.json')
@@ -131,10 +109,6 @@ class TestCDPParser(unittest.TestCase):
             p = self.cdp_parser.get_other_parameters()
 
             self.assertEqual(len(p), 4)
-
-        except Exception as e:
-            print(e)
-            self.fail('Failed to load many json parameters with -d.')
 
         finally:
             if os.path.exists('test_get_other_parameters_with_many_jsons1.json'):
@@ -186,65 +160,30 @@ class TestCDPParser(unittest.TestCase):
             self.assertIsInstance(p.mixed_num_list[1], int)
             self.assertIsInstance(p.mixed_num_list[2], float)
 
-        except Exception as e:
-            print(e)
-            self.fail('Failed to load cfg parameters with -d.')
-
         finally:
             if os.path.exists('test_get_other_parameters_with_cfg.cfg'):
                 os.remove('test_get_other_parameters_with_cfg.cfg')
 
     def test_get_parameters(self):
-        py_str = 'num = 10\n'
-        py_str += 'other_num = 11\n'
-        py_str += "vars = ['v1']\n"
-
         cfg_str = '[Diags1]\n'
         cfg_str += "num = 5\n"
         cfg_str += "path = my/output/dir\n"
         cfg_str += "vars = ['v2']\n"
 
-        try:
-            self.write_file('test_get_parameters.py', py_str)
-            self.write_file('test_get_parameters.cfg', cfg_str)
+        self.write_file('test_get_parameters.cfg', cfg_str)
 
-            self.cdp_parser.add_args_and_values(['-p', 'test_get_parameters.py', '-d', 'test_get_parameters.cfg', '-v', 'v3'])
-            p = self.cdp_parser.get_parameters()[0]
+        self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_get_parameters.py', '-d', 'test_get_parameters.cfg', '-v', 'v3'])
+        p = self.cdp_parser.get_parameters()[0]
 
-            self.assertEqual(p.num, 10)
-            self.assertEqual(p.other_num, 11)
-            self.assertEqual(p.path, 'my/output/dir')
-            self.assertEqual(p.vars, ['v3'])
-
-        except Exception as e:
-            print(e)
-            self.fail('Failed when using -p, -d, and -v together')
-
-        finally:
-            if os.path.exists('test_get_parameters.py'):
-                os.remove('test_get_parameters.py')
-            if os.path.exists('test_get_parameters.cfg'):
-                os.remove('test_get_parameters.cfg')
+        self.assertEqual(p.num, 10)
+        self.assertEqual(p.other_num, 11)
+        self.assertEqual(p.path, 'my/output/dir')
+        self.assertEqual(p.vars, ['v3'])
 
     def test_get_parameters_with_p_only(self):
-        py_str = 'num = 10\n'
-        py_str += 'other_num = 11\n'
-        py_str += "vars = ['v1']\n"
-
-        try:
-            self.write_file('test_get_parameters_with_p_only.py', py_str)
-
-            self.cdp_parser.add_args_and_values(['-p', 'test_get_parameters_with_p_only.py'])
-            p = self.cdp_parser.get_parameters()[0]
-
-        except Exception as e:
-            print(e)
-            self.fail('get_parameters() failed when using -p.')
-
-        finally:
-            if os.path.exists('test_get_parameters_with_p_only.py'):
-                os.remove('test_get_parameters_with_p_only.py')
-
+        self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_get_parameters_with_p_only.py'])
+        p = self.cdp_parser.get_parameters()[0]
+    
     def test_get_parameters_with_d_only(self):
         json_str = '''
             {
@@ -267,10 +206,6 @@ class TestCDPParser(unittest.TestCase):
             p = self.cdp_parser.get_parameters()
 
             self.assertEqual(len(p), 2)
-
-        except Exception as e:
-            print(e)
-            self.fail('get_parameters() failed with just the -d parameter.')
 
         finally:
             if os.path.exists('test_get_parameters_with_d_only.json'):
@@ -306,10 +241,6 @@ class TestCDPParser(unittest.TestCase):
             for p in params:
                 if p.num not in [0, 1, 2]:
                     self.fail('get_other_parameters() did not correctly get the jsons')
-
-        except Exception as e:
-            print(e)
-            self.fail('get_parameters() failed when using files_to_open argument.')
 
         finally:
             if os.path.exists('test_get_other_parameters_with_file_paths1.cfg'):

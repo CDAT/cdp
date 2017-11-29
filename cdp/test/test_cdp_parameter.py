@@ -1,4 +1,4 @@
-
+from __future__ import print_function
 
 import unittest
 import os
@@ -20,12 +20,9 @@ class TestCDPParameter(unittest.TestCase):
 
     def test_load_working_parameter(self):
         try:
-            self.write_file('CDPParameterFile.py', 'var0 = "var0"\n')
-            self.cdp_parameter.load_parameter_from_py('CDPParameterFile.py')
+            self.write_file('./CDPParameterFile.py', 'var0 = "var0"\n')
+            self.cdp_parameter.load_parameter_from_py('./CDPParameterFile.py')
             self.assertEqual(self.cdp_parameter.var0, 'var0')
-        except Exception as e:
-            print(e)
-            self.fail('Test failed with working parameters file')
         finally:
             if os.path.exists('CDPParameterFile.py'):
                 os.remove('CDPParameterFile.py')
@@ -38,9 +35,6 @@ class TestCDPParameter(unittest.TestCase):
             with self.assertRaises(ValueError):
                 self.cdp_parameter.load_parameter_from_py(
                     'CDP.Parameter.File.Wrong.py')
-        except Exception as e:
-            if not isinstance(e, ValueError):
-                raise e
         finally:
             if os.path.exists('CDP.Parameter.File.Wrong.py'):
                 os.remove('CDP.Parameter.File.Wrong.py')
@@ -54,9 +48,6 @@ class TestCDPParameter(unittest.TestCase):
             self.write_file('CDPParameterFile2.py',
                             'import datetime\ndatetime.datetime.now()\n')
             self.cdp_parameter.load_parameter_from_py('CDPParameterFile2.py')
-        except Exception as e:
-            print(e)
-            self.fail('Test failed with import statement in parameter file.')
         finally:
             if os.path.exists('CDPParameterFile2.py'):
                 os.remove('CDPParameterFile2.py')
