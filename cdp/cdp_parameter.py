@@ -1,12 +1,13 @@
+from __future__ import print_function
+
 import abc
 import importlib
 import sys
 import os
+from six import with_metaclass
 
 
-class CDPParameter(object):
-    __metaclass__ = abc.ABCMeta
-
+class CDPParameter(with_metaclass(abc.ABCMeta, object)):
     @abc.abstractmethod
     def check_values(self):
         """Check that all of the variables in

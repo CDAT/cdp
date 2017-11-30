@@ -3,8 +3,10 @@ from __future__ import print_function
 import abc
 import sys
 import cdp._cache
+from six import with_metaclass
 
-class CDPMetric(object):
+
+class CDPMetric(with_metaclass(abc.ABCMeta, object)):
     """
     Abstract class for defining metrics.
 
@@ -28,8 +30,6 @@ class CDPMetric(object):
     3
     """
 
-    __metaclass__ = abc.ABCMeta
-
     def __init__(self, metric_name=None):
         #  metric_info: information displayed when the metric is used.
         # _values: dictionary of the computed values. This allows for compound metrics.
@@ -46,7 +46,7 @@ class CDPMetric(object):
             # it's just a key with a blank value created when there's a compound metric
             self._values.pop('cdp_metric')
             # loop through and calculate all of the metrics
-            for key, value in self._values.items():
+            for key, value in list(self._values.items()):
                 # replaces the function with the actual value
                 self._values[key] = value(*args, **kwargs)
             return self._values
@@ -82,7 +82,7 @@ class CDPMetric(object):
     def _add_values_dict_into_first(self, compound_metric, other_metric):
         """Merges the _values dict of two objects of type CDPMetric
         into the first."""
-        for key, value in other_metric._values.items():
+        for key, value in list(other_metric._values.items()):
             compound_metric._values[key] = value
 
     def _subtract_values_dict_into_first(self, compound_metric, other_metric):

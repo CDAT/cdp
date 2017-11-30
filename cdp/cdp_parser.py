@@ -4,13 +4,16 @@ import sys
 import argparse
 import abc
 import json
-import ConfigParser
 import yaml
+from six import with_metaclass
+
+if sys.version_info[0] >= 3:
+    import configparser
+else:
+    import ConfigParser as configparser
 
 
-class CDPParser(argparse.ArgumentParser):
-    __metaclass__ = abc.ABCMeta
-
+class CDPParser(with_metaclass(abc.ABCMeta, argparse.ArgumentParser)):
     def __init__(self, parameter_cls, *args, **kwargs):
         # conflict_handler='resolve' lets new args override older ones
         super(CDPParser, self).__init__(conflict_handler='resolve',
@@ -26,7 +29,7 @@ class CDPParser(argparse.ArgumentParser):
 
     def overwrite_parameters_with_cmdline_args(self, parameters):
         """Overwrite the parameters with the user's command line arguments."""
-        for arg_name, arg_value in vars(self.__args_namespace).iteritems():
+        for arg_name, arg_value in vars(self.__args_namespace).items():
             if arg_value is not None:
                 # Add it to the parameter
                 setattr(parameters, arg_name, arg_value)
@@ -56,7 +59,7 @@ class CDPParser(argparse.ArgumentParser):
         parameter.load_parameter_from_py(
             self.__args_namespace.parameters)
 
-        for arg_name, arg_value in vars(self.__args_namespace).iteritems():
+        for arg_name, arg_value in vars(self.__args_namespace).items():
             if arg_value is not None:
                 # Add it to the parameter
                 setattr(parameter, arg_name, arg_value)
@@ -95,7 +98,7 @@ class CDPParser(argparse.ArgumentParser):
         """Given a cfg file, return the parameters from it."""
         parameters = []
 
-        config = ConfigParser.ConfigParser()
+        config = configparser.ConfigParser()
         config.read(json_file)
 
         for section in config.sections():

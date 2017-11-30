@@ -1,8 +1,10 @@
-import cdp_metric
-import cdp_parameter
-import cdp_provenance
-import cdp_viewer
-import cdp_io
-import cdp_parser
-import cdp_run
+from __future__ import absolute_import
+
+from . import cdp_metric
+from . import cdp_parameter
+from . import cdp_provenance
+from . import cdp_viewer
+from . import cdp_io
+from . import cdp_parser
+from . import cdp_run
 

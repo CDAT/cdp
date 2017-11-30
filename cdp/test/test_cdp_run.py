@@ -38,8 +38,6 @@ class TestCDPRun(unittest.TestCase):
     def setUp(self):
         self.cdp_parser = MyCDPParser()
 
-        self.py_str = 'num = 1\n'
-
         self.cfg_str = '[Diags1]\n'
         self.cfg_str += "num = 5\n"
         self.cfg_str += '[Diags2]\n'
@@ -56,21 +54,14 @@ class TestCDPRun(unittest.TestCase):
             num = params.num
 
         try:
-            self.write_file('params.py', self.py_str)
             self.write_file('diags.cfg', self.cfg_str)
 
-            self.cdp_parser.add_args_and_values(['-p', 'params.py', '-d', 'diags.cfg'])
+            self.cdp_parser.add_args_and_values(['-d', 'diags.cfg'])
             params = self.cdp_parser.get_parameters()
 
             cdp.cdp_run.serial(func, params)
 
-        except Exception as e:
-            print(e)
-            self.fail('cdp.cdp_run.serial() failed')
-
         finally:
-            if os.path.exists('params.py'):
-                os.remove('params.py')
             if os.path.exists('diags.cfg'):
                 os.remove('diags.cfg')
 
