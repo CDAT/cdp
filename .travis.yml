@@ -21,7 +21,7 @@ script:
   - conda update -q conda
   - conda config --set anaconda_upload no
 
-  - conda install python=$TRAVIS_PYTHON_VERSION output_viewer pyyaml dask distributed -c conda-forge -c uvcdat -y
+  - conda install python=$TRAVIS_PYTHON_VERSION output_viewer pyyaml dask distributed six -c conda-forge -c uvcdat -y
 
   - bash cdp/test/test.sh
 

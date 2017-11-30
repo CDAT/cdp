@@ -4,9 +4,10 @@ import abc
 import importlib
 import sys
 import os
+from six import with_metaclass
 
 
-class CDPParameter(object, metaclass=abc.ABCMeta):
+class CDPParameter(with_metaclass(abc.ABCMeta, object)):
     @abc.abstractmethod
     def check_values(self):
         """Check that all of the variables in

@@ -4,11 +4,16 @@ import sys
 import argparse
 import abc
 import json
-import configparser
 import yaml
+from six import with_metaclass
+
+if sys.version_info[0] >= 3:
+    import configparser
+else:
+    import ConfigParser as configparser
 
 
-class CDPParser(argparse.ArgumentParser, metaclass=abc.ABCMeta):
+class CDPParser(with_metaclass(abc.ABCMeta, argparse.ArgumentParser)):
     def __init__(self, parameter_cls, *args, **kwargs):
         # conflict_handler='resolve' lets new args override older ones
         super(CDPParser, self).__init__(conflict_handler='resolve',

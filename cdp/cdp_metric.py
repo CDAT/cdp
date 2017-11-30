@@ -3,9 +3,10 @@ from __future__ import print_function
 import abc
 import sys
 import cdp._cache
+from six import with_metaclass
 
 
-class CDPMetric(object, metaclass=abc.ABCMeta):
+class CDPMetric(with_metaclass(abc.ABCMeta, object)):
     """
     Abstract class for defining metrics.
 
