@@ -181,7 +181,6 @@ class CDPParser(argparse.ArgumentParser):
             files = [files]
         success = None
         for afile in files:
-            print("Loading in json file:",afile)
             with open(afile) as json_file:
                 args = json.load(json_file)
                 for k in args.keys():
@@ -193,15 +192,15 @@ class CDPParser(argparse.ArgumentParser):
                         option_strings = param.pop("aliases",[])
                         option_strings.insert(0,k)
                         param["type"]=eval(param.pop("type","str"))
-                        print("OPT:",option_strings)
-                        print("OTHER:",param)
-                        self.add_argument(*option_strings,**param)
+                        self.store_default_arguments(option_strings,params)
                         success = True
                     #except:
                     #    warnings.warn("failed to load param {} from json file {}".format(
                     #        k,afile))
                     #    pass
         return success
+    def store_default_arguments(self, options, params):
+        pass
     def load_default_args(self, files):
         """Load the default arguments for the parser."""
         if self.load_default_args_from_json(files):
