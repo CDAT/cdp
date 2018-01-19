@@ -5,6 +5,7 @@ import argparse
 import abc
 import json
 import yaml
+import warnings
 from six import with_metaclass
 
 if sys.version_info[0] >= 3:
@@ -13,12 +14,12 @@ else:
     import ConfigParser as configparser
 
 
-class CDPParser(with_metaclass(abc.ABCMeta, argparse.ArgumentParser)):
-    def __init__(self, parameter_cls, *args, **kwargs):
+class CDPParser(argparse.ArgumentParser):
+    def __init__(self, parameter_cls, default_args_file=[], *args, **kwargs):
         # conflict_handler='resolve' lets new args override older ones
         super(CDPParser, self).__init__(conflict_handler='resolve',
                                         *args, **kwargs)
-        self.load_default_args()
+        self.load_default_args(default_args_file)
         self.__parameter_cls = parameter_cls
         self.__args_namespace = None
 
@@ -174,8 +175,37 @@ class CDPParser(with_metaclass(abc.ABCMeta, argparse.ArgumentParser)):
             print('Deprecation warning: Use get_parameters() instead, which returns a list of Parameters.')
         return self.get_parameters(*args, **kwargs)[0]
 
-    def load_default_args(self):
+    def load_default_args_from_json(self, files):
+        """ take in a list of json files (or a single json file) and create the args from it"""
+        if not isinstance(files,(list,tuple)):
+            files = [files]
+        success = None
+        for afile in files:
+            print("Loading in json file:",afile)
+            with open(afile) as json_file:
+                args = json.load(json_file)
+                for k in args.keys():
+                    if k[0]!="-":
+                        continue
+                    #try:
+                    if 1:
+                        param = args[k]
+                        option_strings = param.pop("aliases",[])
+                        option_strings.insert(0,k)
+                        param["type"]=eval(param.pop("type","str"))
+                        print("OPT:",option_strings)
+                        print("OTHER:",param)
+                        self.add_argument(*option_strings,**param)
+                        success = True
+                    #except:
+                    #    warnings.warn("failed to load param {} from json file {}".format(
+                    #        k,afile))
+                    #    pass
+        return success
+    def load_default_args(self, files):
         """Load the default arguments for the parser."""
+        if self.load_default_args_from_json(files):
+            return
         self.add_argument(
             '-p', '--parameters',
             type=str,
