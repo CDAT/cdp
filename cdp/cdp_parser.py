@@ -22,6 +22,7 @@ class CDPParser(argparse.ArgumentParser):
         self.load_default_args(default_args_file)
         self.__parameter_cls = parameter_cls
         self.__args_namespace = None
+        self.__default_args = []
 
     def view_args(self):
         """Returns the args namespace"""
@@ -200,7 +201,36 @@ class CDPParser(argparse.ArgumentParser):
                     #    pass
         return success
     def store_default_arguments(self, options, params):
-        pass
+        self.__default_args.append(options,params)
+
+    def print_available_defaults(self):
+        p = argparse.ArgumentParser()
+        for opt, param in self.__default_args:
+            p.add_argument(*opt,**params)
+        p.print_help()
+    def available_defaults(self):
+        return [x[0] for x in self.__default_args]
+
+    def use(self,options):
+        if not isinstance(option, (list,tuple)):
+            options = [options]
+        for option in options:
+            match = False
+            for opts, params in self.__default_args:
+                if option in opts:
+                    match = True
+                    break
+                elif option[0]!="--" and "--"+option in opts:
+                    match = True
+                    break
+                elif option[0]!="-" and "-"+option in opts:
+                    match = True
+                    break
+            if match:
+                self.add_argument(*opt, **params)
+            else:
+                raise RuntimeError("could not match {} to any of the default arguments {}".format(option,self.available_defaults))
+
     def load_default_args(self, files):
         """Load the default arguments for the parser."""
         if self.load_default_args_from_json(files):
