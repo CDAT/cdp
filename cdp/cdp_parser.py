@@ -17,12 +17,12 @@ else:
 class CDPParser(with_metaclass(abc.ABCMeta, argparse.ArgumentParser)):
     def __init__(self, parameter_cls, default_args_file=[], *args, **kwargs):
         # conflict_handler='resolve' lets new args override older ones
+        self.__default_args = []
         super(CDPParser, self).__init__(conflict_handler='resolve',
                                         *args, **kwargs)
         self.load_default_args(default_args_file)
         self.__parameter_cls = parameter_cls
         self.__args_namespace = None
-        self.__default_args = []
 
     def view_args(self):
         """Returns the args namespace"""
@@ -200,10 +200,10 @@ class CDPParser(with_metaclass(abc.ABCMeta, argparse.ArgumentParser)):
                         continue
                     # try:
                     if 1:
-                        param = args[k]
-                        option_strings = param.pop("aliases", [])
+                        params = args[k]
+                        option_strings = params.pop("aliases", [])
                         option_strings.insert(0, k)
-                        param["type"] = eval(param.pop("type", "str"))
+                        params["type"] = eval(params.pop("type", "str"))
                         self.store_default_arguments(option_strings, params)
                         success = True
                     # except:
@@ -213,7 +213,7 @@ class CDPParser(with_metaclass(abc.ABCMeta, argparse.ArgumentParser)):
         return success
 
     def store_default_arguments(self, options, params):
-        self.__default_args.append(options, params)
+        self.__default_args.append([options, params])
 
     def print_available_defaults(self):
         p = argparse.ArgumentParser()
@@ -225,7 +225,7 @@ class CDPParser(with_metaclass(abc.ABCMeta, argparse.ArgumentParser)):
         return [x[0] for x in self.__default_args]
 
     def use(self, options):
-        if not isinstance(option, (list, tuple)):
+        if not isinstance(options, (list, tuple)):
             options = [options]
         for option in options:
             match = False
@@ -240,7 +240,7 @@ class CDPParser(with_metaclass(abc.ABCMeta, argparse.ArgumentParser)):
                     match = True
                     break
             if match:
-                self.add_argument(*opt, **params)
+                self.add_argument(*opts, **params)
             else:
                 raise RuntimeError(
                     "could not match {} to any of the default arguments {}".format(

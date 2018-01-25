@@ -45,6 +45,16 @@ class TestCDPParser(unittest.TestCase):
         self.assertTrue(hasattr(p, 'vars'))
         self.assertEqual(p.vars, ['v1', 'v2'])
 
+    def test_load_from_json_and_use_only_one(self):
+        mycdp = self.MyCDPParser(os.path.join(sys.prefix,"share","cdp",'default_args.json'))
+        mycdp.use("-n")
+        nm_spc = mycdp.parse_args([])
+        actual_used = []
+        for att in dir(nm_spc):
+            if not att[0] == "_":
+                actual_used.append(att)
+        self.assertEqual(sorted(actual_used),["num_workers", "vars"])
+
     def test_load_custom_args(self):
         self.cdp_parser.add_args_and_values(['-v', 'v1', 'v2'])
 
