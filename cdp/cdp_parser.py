@@ -7,6 +7,7 @@ import json
 import yaml
 import warnings
 from six import with_metaclass
+import ast
 
 if sys.version_info[0] >= 3:
     import configparser
