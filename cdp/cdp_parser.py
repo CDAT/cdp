@@ -13,7 +13,7 @@ else:
     import ConfigParser as configparser
 
 
-class CDPParser(with_metaclass(abc.ABCMeta, argparse.ArgumentParser)):
+class CDPParser(argparse.ArgumentParser):
     def __init__(self, parameter_cls, *args, **kwargs):
         # conflict_handler='resolve' lets new args override older ones
         super(CDPParser, self).__init__(conflict_handler='resolve',
@@ -22,19 +22,49 @@ class CDPParser(with_metaclass(abc.ABCMeta, argparse.ArgumentParser)):
         self.__parameter_cls = parameter_cls
         self.__args_namespace = None
 
+    def parse_args(self, args=None, namespace=None):
+        """
+        Overwrites default ArgumentParser.parse_args().
+        We need to save the command used to run the parser, which is args or sys.argv.
+        This is because the command used is not always sys.argv.
+        """
+        self.cmd_used = sys.argv if not args else args
+        return super(CDPParser, self).parse_args(args, namespace)
+
     def view_args(self):
         """Returns the args namespace"""
-        self.parse_arguments()
+        self._parse_arguments()
         return self.__args_namespace
 
-    def overwrite_parameters_with_cmdline_args(self, parameters):
-        """Overwrite the parameters with the user's command line arguments."""
+    def _is_arg_default_value(self, arg):
+        """
+        Look at the command used for this parser (ex: test.py -s something --s1 something1)
+        and if arg wasn't used, then it's a default value.
+        """
+        # each cmdline_arg is either '-*' or '--*'.
+        for cmdline_arg in self._option_string_actions:
+            # self.cmd_used is like: ['something.py', '-p', 'test.py', '--s1', 'something']
+            if arg == self._option_string_actions[cmdline_arg].dest and cmdline_arg in self.cmd_used:
+                return False
+        return True
+
+    def _overwrite_parameters_with_cmdline_args(self, parameters):
+        """
+        Overwrite the parameters with the user's command line arguments.
+        Case 1: No param in parameters, use what's in --param. Even if cmdline arg (--param) is a default argument.
+        Case 2: When there's a param in parameters and --param is given, use cmdline arg, but only if it's NOT a default value.
+
+        So the only use of the default in a cmdline arg is when there's nothing for it in parameters.
+        """
         for arg_name, arg_value in vars(self.__args_namespace).items():
-            if arg_value is not None:
-                # Add it to the parameter
+            # Case 1
+            if not hasattr(parameters, arg_name):
+                setattr(parameters, arg_name, arg_value)
+            # Case 2
+            if hasattr(parameters, arg_name) and not self._is_arg_default_value(arg_name):
                 setattr(parameters, arg_name, arg_value)
 
-    def parse_arguments(self):
+    def _parse_arguments(self):
         """Parse the command line arguments while checking for the user's arguments"""
         if self.__args_namespace is None:
             self.__args_namespace = self.parse_args()            
@@ -47,7 +77,7 @@ class CDPParser(with_metaclass(abc.ABCMeta, argparse.ArgumentParser)):
         """Returns the parameters created by -p. If -p wasn't used, returns None."""
         parameter = self.__parameter_cls()
 
-        self.parse_arguments()
+        self._parse_arguments()
         
         if self.__args_namespace.parameters is None:
             return None
@@ -59,10 +89,7 @@ class CDPParser(with_metaclass(abc.ABCMeta, argparse.ArgumentParser)):
         parameter.load_parameter_from_py(
             self.__args_namespace.parameters)
 
-        for arg_name, arg_value in vars(self.__args_namespace).items():
-            if arg_value is not None:
-                # Add it to the parameter
-                setattr(parameter, arg_name, arg_value)
+        self._overwrite_parameters_with_cmdline_args(parameter)
 
         if check_values:
             parameter.check_values()
@@ -85,7 +112,7 @@ class CDPParser(with_metaclass(abc.ABCMeta, argparse.ArgumentParser)):
                 for attr_name in single_run:
                     setattr(p, attr_name, single_run[attr_name])
 
-                self.overwrite_parameters_with_cmdline_args(p)
+                self._overwrite_parameters_with_cmdline_args(p)
 
                 if check_values:
                     p.check_values()
@@ -111,7 +138,7 @@ class CDPParser(with_metaclass(abc.ABCMeta, argparse.ArgumentParser)):
                 v = yaml.safe_load(v)
                 setattr(p, k, v)
 
-            self.overwrite_parameters_with_cmdline_args(p)
+            self._overwrite_parameters_with_cmdline_args(p)
 
             if check_values:
                 p.check_values()
@@ -125,7 +152,7 @@ class CDPParser(with_metaclass(abc.ABCMeta, argparse.ArgumentParser)):
         then use the path specified instead of -d"""
         parameters = []
     
-        self.parse_arguments()
+        self._parse_arguments()
 
         if files_to_open == []:
             files_to_open = self.__args_namespace.other_parameters
@@ -168,7 +195,7 @@ class CDPParser(with_metaclass(abc.ABCMeta, argparse.ArgumentParser)):
         else:
             raise RuntimeError("You ran your script without a '-p' or '-d' argument.")
 
-    def get_parameter(self, warning=True, *args, **kwargs):
+    def get_parameter(self, warning=False, *args, **kwargs):
         """Return the first Parameter in the list of Parameters."""
         if warning:
             print('Deprecation warning: Use get_parameters() instead, which returns a list of Parameters.')
