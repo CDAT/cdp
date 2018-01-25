@@ -18,8 +18,8 @@ class TestCDPParser(unittest.TestCase):
             super(TestCDPParser.MyCDPParser, self).__init__(
                 TestCDPParser.MyCDPParameter, *args, **kwargs)
 
-        def load_default_args(self):
-            super(TestCDPParser.MyCDPParser, self).load_default_args()
+        def load_default_args(self, files=[]):
+            super(TestCDPParser.MyCDPParser, self).load_default_args(files)
             self.add_argument(
                 '-v', '--vars',
                 type=str,

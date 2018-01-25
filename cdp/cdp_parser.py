@@ -14,7 +14,7 @@ else:
     import ConfigParser as configparser
 
 
-class CDPParser(argparse.ArgumentParser):
+class CDPParser(with_metaclass(abc.ABCMeta, argparse.ArgumentParser)):
     def __init__(self, parameter_cls, default_args_file=[], *args, **kwargs):
         # conflict_handler='resolve' lets new args override older ones
         super(CDPParser, self).__init__(conflict_handler='resolve',
@@ -39,7 +39,7 @@ class CDPParser(argparse.ArgumentParser):
     def parse_arguments(self):
         """Parse the command line arguments while checking for the user's arguments"""
         if self.__args_namespace is None:
-            self.__args_namespace = self.parse_args()            
+            self.__args_namespace = self.parse_args()
             if self.__args_namespace.parameters is None and self.__args_namespace.other_parameters is None:
                 print('You must have either the -p or -d arguments.')
                 self.print_help()
@@ -50,14 +50,14 @@ class CDPParser(argparse.ArgumentParser):
         parameter = self.__parameter_cls()
 
         self.parse_arguments()
-        
+
         if self.__args_namespace.parameters is None:
             return None
 
         if not default_vars:  # remove all of the variables
             parameter.__dict__.clear()
 
-        #if self.__args_namespace.parameters is not None:
+        # if self.__args_namespace.parameters is not None:
         parameter.load_parameter_from_py(
             self.__args_namespace.parameters)
 
@@ -71,7 +71,8 @@ class CDPParser(argparse.ArgumentParser):
 
         return parameter
 
-    def get_parameters_from_json(self, json_file, default_vars=True, check_values=True):
+    def get_parameters_from_json(
+            self, json_file, default_vars=True, check_values=True):
         """Given a json file, return the parameters from it."""
         with open(json_file) as f:
             json_data = json.loads(f.read())
@@ -96,7 +97,8 @@ class CDPParser(argparse.ArgumentParser):
 
         return parameters
 
-    def get_parameters_from_cfg(self, json_file, default_vars=True, check_values=True):
+    def get_parameters_from_cfg(
+            self, json_file, default_vars=True, check_values=True):
         """Given a cfg file, return the parameters from it."""
         parameters = []
 
@@ -122,11 +124,12 @@ class CDPParser(argparse.ArgumentParser):
 
         return parameters
 
-    def get_other_parameters(self, files_to_open=[], default_vars=True, check_values=True):
-        """Returns the parameters created by -d, If files_to_open is defined, 
+    def get_other_parameters(self, files_to_open=[],
+                             default_vars=True, check_values=True):
+        """Returns the parameters created by -d, If files_to_open is defined,
         then use the path specified instead of -d"""
         parameters = []
-    
+
         self.parse_arguments()
 
         if files_to_open == []:
@@ -135,84 +138,94 @@ class CDPParser(argparse.ArgumentParser):
         if files_to_open is not None:
             for diags_file in files_to_open:
                 if '.json' in diags_file:
-                    params = self.get_parameters_from_json(diags_file, default_vars, check_values)
+                    params = self.get_parameters_from_json(
+                        diags_file, default_vars, check_values)
                 elif '.cfg' in diags_file:
-                    params = self.get_parameters_from_cfg(diags_file, default_vars, check_values)
+                    params = self.get_parameters_from_cfg(
+                        diags_file, default_vars, check_values)
                 else:
-                    raise RuntimeError('The parameters input file must be either a .json or .cfg file')
+                    raise RuntimeError(
+                        'The parameters input file must be either a .json or .cfg file')
 
                 for p in params:
                     parameters.append(p)
 
         return parameters
 
-    def combine_orig_and_other_params(self, orig_parameters, other_parameters, vars_to_ignore=[]):
+    def combine_orig_and_other_params(
+            self, orig_parameters, other_parameters, vars_to_ignore=[]):
         """Combine orig_parameters with all of the other_parameters, while ignoring vars_to_ignore"""
         for parameters in other_parameters:
             for var in orig_parameters.__dict__:
                 if var not in vars_to_ignore:
                     parameters.__dict__[var] = orig_parameters.__dict__[var]
 
-    def get_parameters(self, orig_parameters=None, other_parameters=[], vars_to_ignore=[], *args, **kwargs):
+    def get_parameters(self, orig_parameters=None, other_parameters=[
+    ], vars_to_ignore=[], *args, **kwargs):
         """Get the parameters based on the command line arguments and return a list of them."""
         if orig_parameters is None:
             orig_parameters = self.get_orig_parameters(*args, **kwargs)
         if other_parameters == []:
-            other_parameters = self.get_other_parameters(*args, **kwargs)            
+            other_parameters = self.get_other_parameters(*args, **kwargs)
 
         if orig_parameters is not None and other_parameters == []:  # only -p
             return [orig_parameters]
         elif orig_parameters is None and other_parameters != []:  # only -d
             return other_parameters
         elif orig_parameters is not None and other_parameters != []:  # used -p and -d
-            self.combine_orig_and_other_params(orig_parameters, other_parameters, vars_to_ignore)
+            self.combine_orig_and_other_params(
+                orig_parameters, other_parameters, vars_to_ignore)
             return other_parameters
         else:
-            raise RuntimeError("You ran your script without a '-p' or '-d' argument.")
+            raise RuntimeError(
+                "You ran your script without a '-p' or '-d' argument.")
 
     def get_parameter(self, warning=True, *args, **kwargs):
         """Return the first Parameter in the list of Parameters."""
         if warning:
-            print('Deprecation warning: Use get_parameters() instead, which returns a list of Parameters.')
+            print(
+                'Deprecation warning: Use get_parameters() instead, which returns a list of Parameters.')
         return self.get_parameters(*args, **kwargs)[0]
 
     def load_default_args_from_json(self, files):
         """ take in a list of json files (or a single json file) and create the args from it"""
-        if not isinstance(files,(list,tuple)):
+        if not isinstance(files, (list, tuple)):
             files = [files]
         success = None
         for afile in files:
             with open(afile) as json_file:
                 args = json.load(json_file)
                 for k in args.keys():
-                    if k[0]!="-":
+                    if k[0] != "-":
                         continue
-                    #try:
+                    # try:
                     if 1:
                         param = args[k]
-                        option_strings = param.pop("aliases",[])
-                        option_strings.insert(0,k)
-                        param["type"]=eval(param.pop("type","str"))
-                        self.store_default_arguments(option_strings,params)
+                        option_strings = param.pop("aliases", [])
+                        option_strings.insert(0, k)
+                        param["type"] = eval(param.pop("type", "str"))
+                        self.store_default_arguments(option_strings, params)
                         success = True
-                    #except:
+                    # except:
                     #    warnings.warn("failed to load param {} from json file {}".format(
                     #        k,afile))
                     #    pass
         return success
+
     def store_default_arguments(self, options, params):
-        self.__default_args.append(options,params)
+        self.__default_args.append(options, params)
 
     def print_available_defaults(self):
         p = argparse.ArgumentParser()
         for opt, param in self.__default_args:
-            p.add_argument(*opt,**params)
+            p.add_argument(*opt, **params)
         p.print_help()
+
     def available_defaults(self):
         return [x[0] for x in self.__default_args]
 
-    def use(self,options):
-        if not isinstance(option, (list,tuple)):
+    def use(self, options):
+        if not isinstance(option, (list, tuple)):
             options = [options]
         for option in options:
             match = False
@@ -220,18 +233,20 @@ class CDPParser(argparse.ArgumentParser):
                 if option in opts:
                     match = True
                     break
-                elif option[0]!="--" and "--"+option in opts:
+                elif option[0] != "--" and "--" + option in opts:
                     match = True
                     break
-                elif option[0]!="-" and "-"+option in opts:
+                elif option[0] != "-" and "-" + option in opts:
                     match = True
                     break
             if match:
                 self.add_argument(*opt, **params)
             else:
-                raise RuntimeError("could not match {} to any of the default arguments {}".format(option,self.available_defaults))
+                raise RuntimeError(
+                    "could not match {} to any of the default arguments {}".format(
+                        option, self.available_defaults))
 
-    def load_default_args(self, files):
+    def load_default_args(self, files=[]):
         """Load the default arguments for the parser."""
         if self.load_default_args_from_json(files):
             return
