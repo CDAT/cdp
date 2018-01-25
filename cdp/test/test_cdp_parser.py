@@ -183,7 +183,7 @@ class TestCDPParser(unittest.TestCase):
         finally:
             if os.path.exists('test_get_parameters.cfg'):
                 os.remove('test_get_parameters.cfg')
-                
+
     def test_get_parameters_with_p_only(self):
         self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_get_parameters_with_p_only.py'])
         p = self.cdp_parser.get_parameters()[0]
@@ -301,6 +301,19 @@ class TestCDPParser(unittest.TestCase):
             # if os.path.exists('test_cmdline_args_with_default_values2.py'):
             #    os.remove('test_cmdline_args_with_default_values2.py')
             pass
+
+    def test_with_cmdline_args_only(self):
+        self.cdp_parser.add_argument(
+                '--default_val',
+                type=str,
+                dest='default_val',
+                default='default_val',
+                required=False)
+
+        self.cdp_parser.add_args_and_values(['-v', 'v1', 'v2', 'v3'])
+        params = self.cdp_parser.get_parameter()
+        self.assertEqual(params.vars, ['v1', 'v2', 'v3'])
+        self.assertEqual(params.default_val, 'default_val')
 
 if __name__ == '__main__':
     unittest.main()

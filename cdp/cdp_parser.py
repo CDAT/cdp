@@ -68,10 +68,10 @@ class CDPParser(argparse.ArgumentParser):
         """Parse the command line arguments while checking for the user's arguments"""
         if self.__args_namespace is None:
             self.__args_namespace = self.parse_args()            
-            if self.__args_namespace.parameters is None and self.__args_namespace.other_parameters is None:
-                print('You must have either the -p or -d arguments.')
-                self.print_help()
-                sys.exit()
+            # if self.__args_namespace.parameters is None and self.__args_namespace.other_parameters is None:
+            #     print('You must have either the -p or -d arguments.')
+            #     self.print_help()
+            #     sys.exit()
 
     def get_orig_parameters(self, default_vars=True, check_values=True):
         """Returns the parameters created by -p. If -p wasn't used, returns None."""
@@ -178,6 +178,22 @@ class CDPParser(argparse.ArgumentParser):
                 if var not in vars_to_ignore:
                     parameters.__dict__[var] = orig_parameters.__dict__[var]
 
+    def get_parameters_from_cmd_line(self, check_values=True):
+        """
+        Neither -p nor -d was used, so use the other command line args
+        to create a single parameters object.
+        """
+        parameter = self.__parameter_cls()
+
+        self._parse_arguments()
+
+        self._overwrite_parameters_with_cmdline_args(parameter)
+
+        if check_values:
+            parameter.check_values()
+
+        return parameter
+
     def get_parameters(self, orig_parameters=None, other_parameters=[], vars_to_ignore=[], *args, **kwargs):
         """Get the parameters based on the command line arguments and return a list of them."""
         if orig_parameters is None:
@@ -192,8 +208,8 @@ class CDPParser(argparse.ArgumentParser):
         elif orig_parameters is not None and other_parameters != []:  # used -p and -d
             self.combine_orig_and_other_params(orig_parameters, other_parameters, vars_to_ignore)
             return other_parameters
-        else:
-            raise RuntimeError("You ran your script without a '-p' or '-d' argument.")
+        else:  # just used command line arguments
+            return [self.get_parameters_from_cmd_line(*args, **kwargs)]
 
     def get_parameter(self, warning=False, *args, **kwargs):
         """Return the first Parameter in the list of Parameters."""
