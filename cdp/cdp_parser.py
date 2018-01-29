@@ -48,7 +48,7 @@ class CDPParser(argparse.ArgumentParser):
                 return False
         return True
 
-    def _overwrite_parameters_with_cmdline_args(self, parameters):
+    def _overwrite_parameters_with_cmdline_args(self, parameters, cmd_default_vars=True):
         """
         Overwrite the parameters with the user's command line arguments.
         Case 1: No param in parameters, use what's in --param. Even if cmdline arg (--param) is a default argument.
@@ -57,6 +57,9 @@ class CDPParser(argparse.ArgumentParser):
         So the only use of the default in a cmdline arg is when there's nothing for it in parameters.
         """
         for arg_name, arg_value in vars(self.__args_namespace).items():
+            if not cmd_default_vars and self._is_arg_default_value(arg_name):
+                continue
+
             # Case 1
             if not hasattr(parameters, arg_name):
                 setattr(parameters, arg_name, arg_value)
@@ -68,19 +71,15 @@ class CDPParser(argparse.ArgumentParser):
         """Parse the command line arguments while checking for the user's arguments"""
         if self.__args_namespace is None:
             self.__args_namespace = self.parse_args()            
-            # if self.__args_namespace.parameters is None and self.__args_namespace.other_parameters is None:
-            #     print('You must have either the -p or -d arguments.')
-            #     self.print_help()
-            #     sys.exit()
 
-    def get_orig_parameters(self, default_vars=True, check_values=True):
+    def get_orig_parameters(self, default_vars=True, check_values=True, cmd_default_vars=True):
         """Returns the parameters created by -p. If -p wasn't used, returns None."""
-        parameter = self.__parameter_cls()
-
         self._parse_arguments()
         
-        if self.__args_namespace.parameters is None:
+        if not self.__args_namespace.parameters:
             return None
+
+        parameter = self.__parameter_cls()
 
         if not default_vars:  # remove all of the variables
             parameter.__dict__.clear()
@@ -89,14 +88,16 @@ class CDPParser(argparse.ArgumentParser):
         parameter.load_parameter_from_py(
             self.__args_namespace.parameters)
 
-        self._overwrite_parameters_with_cmdline_args(parameter)
+        # needed because the `defaults` in the command line parser affect Parameters,
+        # even when -* or --* are not used.
+        self._overwrite_parameters_with_cmdline_args(parameter, cmd_default_vars)
 
         if check_values:
             parameter.check_values()
 
         return parameter
 
-    def get_parameters_from_json(self, json_file, default_vars=True, check_values=True):
+    def get_parameters_from_json(self, json_file, default_vars=True, check_values=True, cmd_default_vars=True):
         """Given a json file, return the parameters from it."""
         with open(json_file) as f:
             json_data = json.loads(f.read())
@@ -112,7 +113,9 @@ class CDPParser(argparse.ArgumentParser):
                 for attr_name in single_run:
                     setattr(p, attr_name, single_run[attr_name])
 
-                self._overwrite_parameters_with_cmdline_args(p)
+                # needed because the `defaults` in the command line parser affect Parameters,
+                # even when -* or --* are not used.
+                self._overwrite_parameters_with_cmdline_args(p, cmd_default_vars)
 
                 if check_values:
                     p.check_values()
@@ -121,7 +124,7 @@ class CDPParser(argparse.ArgumentParser):
 
         return parameters
 
-    def get_parameters_from_cfg(self, json_file, default_vars=True, check_values=True):
+    def get_parameters_from_cfg(self, json_file, default_vars=True, check_values=True, cmd_default_vars=True):
         """Given a cfg file, return the parameters from it."""
         parameters = []
 
@@ -138,7 +141,9 @@ class CDPParser(argparse.ArgumentParser):
                 v = yaml.safe_load(v)
                 setattr(p, k, v)
 
-            self._overwrite_parameters_with_cmdline_args(p)
+            # needed because the `defaults` in the command line parser affect Parameters,
+            # even when -* or --* are not used.
+            self._overwrite_parameters_with_cmdline_args(p, cmd_default_vars)
 
             if check_values:
                 p.check_values()
@@ -147,7 +152,7 @@ class CDPParser(argparse.ArgumentParser):
 
         return parameters
 
-    def get_other_parameters(self, files_to_open=[], default_vars=True, check_values=True):
+    def get_other_parameters(self, files_to_open=[], default_vars=True, check_values=True, cmd_default_vars=True):
         """Returns the parameters created by -d, If files_to_open is defined, 
         then use the path specified instead of -d"""
         parameters = []
@@ -160,9 +165,9 @@ class CDPParser(argparse.ArgumentParser):
         if files_to_open is not None:
             for diags_file in files_to_open:
                 if '.json' in diags_file:
-                    params = self.get_parameters_from_json(diags_file, default_vars, check_values)
+                    params = self.get_parameters_from_json(diags_file, default_vars, check_values, cmd_default_vars)
                 elif '.cfg' in diags_file:
-                    params = self.get_parameters_from_cfg(diags_file, default_vars, check_values)
+                    params = self.get_parameters_from_cfg(diags_file, default_vars, check_values, cmd_default_vars)
                 else:
                     raise RuntimeError('The parameters input file must be either a .json or .cfg file')
 
@@ -171,45 +176,82 @@ class CDPParser(argparse.ArgumentParser):
 
         return parameters
 
-    def combine_orig_and_other_params(self, orig_parameters, other_parameters, vars_to_ignore=[]):
-        """Combine orig_parameters with all of the other_parameters, while ignoring vars_to_ignore"""
-        for parameters in other_parameters:
-            for var in orig_parameters.__dict__:
-                if var not in vars_to_ignore:
-                    parameters.__dict__[var] = orig_parameters.__dict__[var]
-
-    def get_parameters_from_cmd_line(self, check_values=True):
+    def _were_cmdline_args_used(self):
         """
-        Neither -p nor -d was used, so use the other command line args
-        to create a single parameters object.
+        Checks that other parameters, besides '-p' or '-d', were used 
         """
-        parameter = self.__parameter_cls()
+        for cmd in self.cmd_used:
+            if cmd.startswith('-') and cmd not in ['-p', '--parameters', '-d', '--diags']:
+                return True
+        return False
 
+    def get_cmdline_parameters(self, default_vars=True, check_values=False, cmd_default_vars=True):
+        """
+        Use the other command line args besides -p and -d to create a single parameters object.
+        cmd_default_vars is used to see if the `default` option in ArgumentParser.add_argument() should be used.
+        """
         self._parse_arguments()
 
-        self._overwrite_parameters_with_cmdline_args(parameter)
+        if not self._were_cmdline_args_used():
+            return None 
+
+        parameter = self.__parameter_cls()
+
+        if not default_vars:  # remove all of the variables
+            parameter.__dict__.clear()
+
+        self._overwrite_parameters_with_cmdline_args(parameter, cmd_default_vars)
 
         if check_values:
             parameter.check_values()
 
         return parameter
 
-    def get_parameters(self, orig_parameters=None, other_parameters=[], vars_to_ignore=[], *args, **kwargs):
+    def combine_params(self, cmdline_parameters=None, orig_parameters=None, other_parameters=None, vars_to_ignore=[]):
+        """Combine cmdline_params (-* or --*), orig_parameters (-p), and other_parameters (-d), while ignoring vars_to_ignore"""
+        if other_parameters:
+            for parameters in other_parameters:
+                # orig_parameters args take precedence over other_parameters
+                if orig_parameters:
+                    for var in orig_parameters.__dict__:
+                        if var not in vars_to_ignore:
+                            parameters.__dict__[var] = orig_parameters.__dict__[var]
+
+                # cmd_line args take the final precedence
+                if cmdline_parameters:
+                    for var in cmdline_parameters.__dict__:
+                        if var not in vars_to_ignore:
+                            parameters.__dict__[var] = cmdline_parameters.__dict__[var]
+
+        # might just combine cmdline_params with orig_params
+        elif not other_parameters and orig_parameters and cmdline_parameters:
+            for var in cmdline_parameters.__dict__:
+                if var not in vars_to_ignore:
+                    orig_parameters.__dict__[var] = cmdline_parameters.__dict__[var]
+
+    def combine_orig_and_other_params(self, orig_parameters, other_parameters, vars_to_ignore=[]):
+        """Combine orig_parameters with all of the other_parameters, while ignoring vars_to_ignore"""
+        print('Deprication warning: please use combine_params() instead')
+        self.combine_params(None, orig_parameters, other_parameters, vars_to_ignore)
+
+
+    def get_parameters(self, cmdline_parameters=None, orig_parameters=None, other_parameters=[], vars_to_ignore=[], *args, **kwargs):
         """Get the parameters based on the command line arguments and return a list of them."""
-        if orig_parameters is None:
+        if not cmdline_parameters:
+            cmdline_parameters = self.get_cmdline_parameters(*args, **kwargs)
+        if not orig_parameters:
             orig_parameters = self.get_orig_parameters(*args, **kwargs)
         if other_parameters == []:
             other_parameters = self.get_other_parameters(*args, **kwargs)            
 
-        if orig_parameters is not None and other_parameters == []:  # only -p
+        self.combine_params(cmdline_parameters, orig_parameters, other_parameters, *args, **kwargs)
+
+        if other_parameters != []:
+            return other_parameters
+        elif orig_parameters:
             return [orig_parameters]
-        elif orig_parameters is None and other_parameters != []:  # only -d
-            return other_parameters
-        elif orig_parameters is not None and other_parameters != []:  # used -p and -d
-            self.combine_orig_and_other_params(orig_parameters, other_parameters, vars_to_ignore)
-            return other_parameters
-        else:  # just used command line arguments
-            return [self.get_parameters_from_cmd_line(*args, **kwargs)]
+        else:
+            return [cmdline_parameters]
 
     def get_parameter(self, warning=False, *args, **kwargs):
         """Return the first Parameter in the list of Parameters."""
