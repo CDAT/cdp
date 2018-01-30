@@ -1,0 +1,1 @@
+default_val = 'default_val_from_py'
