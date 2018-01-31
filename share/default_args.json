@@ -11,7 +11,7 @@
         "required":false},
         "--num_workers": {"aliases":["-n"],
             "type":"int",
-            "help":"Number of workers, used when runnnig with multiprocessing or distributedly",
+            "help":"Number of workers, used when running with multiprocessing or distributedly",
             "required":false},
             "--scheduler_addr":{"type":"str",
-                "help":"Address of scheduler in the form of IP_ADDRESS:PORT. Used when running distributedly"}}
+                "help":"Address of scheduler in the form of IP_ADDRESS:PORT. Used when running in distributed mode."}}

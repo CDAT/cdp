@@ -255,7 +255,7 @@ class CDPParser(with_metaclass(abc.ABCMeta, argparse.ArgumentParser)):
             '-p', '--parameters',
             type=str,
             dest='parameters',
-            help='Path to the user-defined parameter file',
+            help='Path to the user-defined parameter file.',
             required=False)
         self.add_argument(
             '-d', '--diags',
@@ -263,19 +263,19 @@ class CDPParser(with_metaclass(abc.ABCMeta, argparse.ArgumentParser)):
             nargs='+',
             dest='other_parameters',
             default=[],
-            help='Path to the other user-defined parameter file',
+            help='Path to the other user-defined parameter file.',
             required=False)
         self.add_argument(
             '-n', '--num_workers',
             type=int,
             dest='num_workers',
-            help='Number of workers, used when running with multiprocessing or distributedly',
+            help='Number of workers, used when running with multiprocessing or distributedly.',
             required=False)
         self.add_argument(
             '--scheduler_addr',
             type=str,
             dest='scheduler_addr',
-            help='Address of the scheduler in the form of IP_ADDRESS:PORT. Used when running distributedly',
+            help='Address of the scheduler in the form of IP_ADDRESS:PORT. Used when running in distributed mode.',
             required=False)
 
     def add_args_and_values(self, arg_list):
