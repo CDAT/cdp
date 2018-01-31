@@ -5,7 +5,9 @@ import argparse
 import abc
 import json
 import yaml
+import warnings
 from six import with_metaclass
+import ast
 
 if sys.version_info[0] >= 3:
     import configparser
@@ -14,11 +16,12 @@ else:
 
 
 class CDPParser(argparse.ArgumentParser):
-    def __init__(self, parameter_cls, *args, **kwargs):
+    def __init__(self, parameter_cls, default_args_file=[], *args, **kwargs):
         # conflict_handler='resolve' lets new args override older ones
+        self.__default_args = []
         super(CDPParser, self).__init__(conflict_handler='resolve',
                                         *args, **kwargs)
-        self.load_default_args()
+        self.load_default_args(default_args_file)
         self.__parameter_cls = parameter_cls
         self.__args_namespace = None
 
@@ -84,7 +87,7 @@ class CDPParser(argparse.ArgumentParser):
         if not default_vars:  # remove all of the variables
             parameter.__dict__.clear()
 
-        #if self.__args_namespace.parameters is not None:
+        # if self.__args_namespace.parameters is not None:
         parameter.load_parameter_from_py(
             self.__args_namespace.parameters)
 
@@ -169,7 +172,8 @@ class CDPParser(argparse.ArgumentParser):
                 elif '.cfg' in diags_file:
                     params = self.get_parameters_from_cfg(diags_file, default_vars, check_values, cmd_default_vars)
                 else:
-                    raise RuntimeError('The parameters input file must be either a .json or .cfg file')
+                    raise RuntimeError(
+                        'The parameters input file must be either a .json or .cfg file')
 
                 for p in params:
                     parameters.append(p)
@@ -234,7 +238,6 @@ class CDPParser(argparse.ArgumentParser):
         print('Deprication warning: please use combine_params() instead')
         self.combine_params(None, orig_parameters, other_parameters, vars_to_ignore)
 
-
     def get_parameters(self, cmdline_parameters=None, orig_parameters=None, other_parameters=[], vars_to_ignore=[], *args, **kwargs):
         """Get the parameters based on the command line arguments and return a list of them."""
         if not cmdline_parameters:
@@ -242,7 +245,7 @@ class CDPParser(argparse.ArgumentParser):
         if not orig_parameters:
             orig_parameters = self.get_orig_parameters(*args, **kwargs)
         if other_parameters == []:
-            other_parameters = self.get_other_parameters(*args, **kwargs)            
+            other_parameters = self.get_other_parameters(*args, **kwargs)
 
         self.combine_params(cmdline_parameters, orig_parameters, other_parameters, *args, **kwargs)
 
@@ -256,16 +259,78 @@ class CDPParser(argparse.ArgumentParser):
     def get_parameter(self, warning=False, *args, **kwargs):
         """Return the first Parameter in the list of Parameters."""
         if warning:
-            print('Deprecation warning: Use get_parameters() instead, which returns a list of Parameters.')
+            print(
+                'Deprecation warning: Use get_parameters() instead, which returns a list of Parameters.')
         return self.get_parameters(*args, **kwargs)[0]
 
-    def load_default_args(self):
+    def load_default_args_from_json(self, files):
+        """ take in a list of json files (or a single json file) and create the args from it"""
+        if not isinstance(files, (list, tuple)):
+            files = [files]
+        success = None
+        for afile in files:
+            with open(afile) as json_file:
+                args = json.load(json_file)
+                for k in args.keys():
+                    if k[0] != "-":
+                        continue
+                    # try:
+                    if 1:
+                        params = args[k]
+                        option_strings = params.pop("aliases", [])
+                        option_strings.insert(0, k)
+                        params["type"] = eval(params.pop("type", "str"))
+                        self.store_default_arguments(option_strings, params)
+                        success = True
+                    # except:
+                    #    warnings.warn("failed to load param {} from json file {}".format(
+                    #        k,afile))
+                    #    pass
+        return success
+
+    def store_default_arguments(self, options, params):
+        self.__default_args.append([options, params])
+
+    def print_available_defaults(self):
+        p = argparse.ArgumentParser()
+        for opt, param in self.__default_args:
+            p.add_argument(*opt, **params)
+        p.print_help()
+
+    def available_defaults(self):
+        return [x[0] for x in self.__default_args]
+
+    def use(self, options):
+        if not isinstance(options, (list, tuple)):
+            options = [options]
+        for option in options:
+            match = False
+            for opts, params in self.__default_args:
+                if option in opts:
+                    match = True
+                    break
+                elif option[0] != "--" and "--" + option in opts:
+                    match = True
+                    break
+                elif option[0] != "-" and "-" + option in opts:
+                    match = True
+                    break
+            if match:
+                self.add_argument(*opts, **params)
+            else:
+                raise RuntimeError(
+                    "could not match {} to any of the default arguments {}".format(
+                        option, self.available_defaults))
+
+    def load_default_args(self, files=[]):
         """Load the default arguments for the parser."""
+        if self.load_default_args_from_json(files):
+            return
         self.add_argument(
             '-p', '--parameters',
             type=str,
             dest='parameters',
-            help='Path to the user-defined parameter file',
+            help='Path to the user-defined parameter file.',
             required=False)
         self.add_argument(
             '-d', '--diags',
@@ -273,19 +338,19 @@ class CDPParser(argparse.ArgumentParser):
             nargs='+',
             dest='other_parameters',
             default=[],
-            help='Path to the other user-defined parameter file',
+            help='Path to the other user-defined parameter file.',
             required=False)
         self.add_argument(
             '-n', '--num_workers',
             type=int,
             dest='num_workers',
-            help='Number of workers, used when running with multiprocessing or distributedly',
+            help='Number of workers, used when running with multiprocessing or distributedly.',
             required=False)
         self.add_argument(
             '--scheduler_addr',
             type=str,
             dest='scheduler_addr',
-            help='Address of the scheduler in the form of IP_ADDRESS:PORT. Used when running distributedly',
+            help='Address of the scheduler in the form of IP_ADDRESS:PORT. Used when running in distributed mode.',
             required=False)
 
     def add_args_and_values(self, arg_list):

@@ -17,8 +17,8 @@ class MyCDPParser(cdp.cdp_parser.CDPParser):
         super(MyCDPParser, self).__init__(
             MyCDPParameter, *args, **kwargs)
 
-    def load_default_args(self):
-        super(MyCDPParser, self).load_default_args()
+    def load_default_args(self, files=[]):
+        super(MyCDPParser, self).load_default_args(files)
         self.add_argument(
             '-v', '--vars',
             type=str,
