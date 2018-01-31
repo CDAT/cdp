@@ -5,8 +5,8 @@ from setuptools import find_packages, setup
 setup(
     name="cdp",
     version="1.1.1",
-    author="Zeshawn Shaheen",
-    author_email="shaheen2@llnl.gov",
+    author="Zeshawn Shaheen, Charles Doutriaux",
+    author_email="shaheen2@llnl.gov, doutriaux1@llnl.gov",
     description="Framework for creating scientific diagnostics.",
     packages=find_packages(exclude=["*.test", "*.test.*", "test.*", "test"]),
     data_files=[(os.path.join(sys.prefix,'share','cdp'), ('share/default_args.json',))],
