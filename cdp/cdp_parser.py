@@ -344,7 +344,7 @@ class CDPParser(argparse.ArgumentParser):
             '-n', '--num_workers',
             type=int,
             dest='num_workers',
-            help='Number of workers, used when running with multiprocessing or distributedly.',
+            help='Number of workers, used when running with multiprocessing or in distributed mode.',
             required=False)
         self.add_argument(
             '--scheduler_addr',
