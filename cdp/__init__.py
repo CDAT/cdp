@@ -8,5 +8,5 @@ from . import cdp_io
 from . import cdp_parser
 from . import cdp_run
 
-__version__ = 'v1.1.1'
+__version__ = 'v1.2.0'
 
