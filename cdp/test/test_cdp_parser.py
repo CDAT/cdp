@@ -48,7 +48,8 @@ class TestCDPParser(unittest.TestCase):
         class MyOtherParser(cdp.cdp_parser.CDPParser):
             pass
         
-        parser = MyOtherParser()
+        MyOtherParser()
+        cdp.cdp_parser.CDPParser()
 
     def test_load_default_args(self):
         self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_load_default_args.py'])
