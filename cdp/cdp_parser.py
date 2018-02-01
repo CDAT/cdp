@@ -247,7 +247,7 @@ class CDPParser(argparse.ArgumentParser):
         if other_parameters == []:
             other_parameters = self.get_other_parameters(*args, **kwargs)
 
-        self.combine_params(cmdline_parameters, orig_parameters, other_parameters, *args, **kwargs)
+        self.combine_params(cmdline_parameters, orig_parameters, other_parameters, vars_to_ignore)
 
         if other_parameters != []:
             return other_parameters
