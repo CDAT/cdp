@@ -16,14 +16,18 @@ else:
 
 
 class CDPParser(argparse.ArgumentParser):
-    def __init__(self, parameter_cls, default_args_file=[], *args, **kwargs):
+    def __init__(self, parameter_cls=None, default_args_file=[], *args, **kwargs):
         # conflict_handler='resolve' lets new args override older ones
         self.__default_args = []
         super(CDPParser, self).__init__(conflict_handler='resolve',
                                         *args, **kwargs)
         self.load_default_args(default_args_file)
-        self.__parameter_cls = parameter_cls
         self.__args_namespace = None
+        self.__parameter_cls = parameter_cls
+        
+        if not self.__parameter_cls:
+            from cdp.cdp_parameter import CDPParameter
+            self.__parameter_cls = CDPParameter
 
     def parse_args(self, args=None, namespace=None):
         """
@@ -51,23 +55,13 @@ class CDPParser(argparse.ArgumentParser):
                 return False
         return True
 
-    def _overwrite_parameters_with_cmdline_args(self, parameters, cmd_default_vars=True):
+    def _get_default_from_cmdline(self, parameters):
         """
-        Overwrite the parameters with the user's command line arguments.
-        Case 1: No param in parameters, use what's in --param. Even if cmdline arg (--param) is a default argument.
-        Case 2: When there's a param in parameters and --param is given, use cmdline arg, but only if it's NOT a default value.
-
-        So the only use of the default in a cmdline arg is when there's nothing for it in parameters.
+        Get the default values from the command line and insert it into the parameters object,
+        but only if that parameter is NOT already defined.
         """
         for arg_name, arg_value in vars(self.__args_namespace).items():
-            if not cmd_default_vars and self._is_arg_default_value(arg_name):
-                continue
-
-            # Case 1
-            if not hasattr(parameters, arg_name):
-                setattr(parameters, arg_name, arg_value)
-            # Case 2
-            if hasattr(parameters, arg_name) and not self._is_arg_default_value(arg_name):
+            if self._is_arg_default_value(arg_name) and not hasattr(parameters, arg_name):
                 setattr(parameters, arg_name, arg_value)
 
     def _parse_arguments(self):
@@ -91,9 +85,8 @@ class CDPParser(argparse.ArgumentParser):
         parameter.load_parameter_from_py(
             self.__args_namespace.parameters)
 
-        # needed because the `defaults` in the command line parser affect Parameters,
-        # even when -* or --* are not used.
-        self._overwrite_parameters_with_cmdline_args(parameter, cmd_default_vars)
+        if cmd_default_vars:
+            self._get_default_from_cmdline(parameter)
 
         if check_values:
             parameter.check_values()
@@ -116,9 +109,8 @@ class CDPParser(argparse.ArgumentParser):
                 for attr_name in single_run:
                     setattr(p, attr_name, single_run[attr_name])
 
-                # needed because the `defaults` in the command line parser affect Parameters,
-                # even when -* or --* are not used.
-                self._overwrite_parameters_with_cmdline_args(p, cmd_default_vars)
+                if cmd_default_vars:
+                    self._get_default_from_cmdline(p)
 
                 if check_values:
                     p.check_values()
@@ -144,9 +136,8 @@ class CDPParser(argparse.ArgumentParser):
                 v = yaml.safe_load(v)
                 setattr(p, k, v)
 
-            # needed because the `defaults` in the command line parser affect Parameters,
-            # even when -* or --* are not used.
-            self._overwrite_parameters_with_cmdline_args(p, cmd_default_vars)
+            if cmd_default_vars:
+                self._get_default_from_cmdline(p)
 
             if check_values:
                 p.check_values()
@@ -188,6 +179,25 @@ class CDPParser(argparse.ArgumentParser):
             if cmd.startswith('-') and cmd not in ['-p', '--parameters', '-d', '--diags']:
                 return True
         return False
+
+    def _overwrite_parameters_with_cmdline_args(self, parameters, cmd_default_vars=True):
+        """
+        Overwrite the parameters with the user's command line arguments.
+        Case 1: No param in parameters, use what's in --param. Even if cmdline arg (--param) is a default argument.
+        Case 2: When there's a param in parameters and --param is given, use cmdline arg, but only if it's NOT a default value.
+
+        So the only use of the default in a cmdline arg is when there's nothing for it in parameters.
+        """
+        for arg_name, arg_value in vars(self.__args_namespace).items():
+            if not cmd_default_vars and self._is_arg_default_value(arg_name):
+                continue
+
+            # Case 1
+            if not hasattr(parameters, arg_name):
+                setattr(parameters, arg_name, arg_value)
+            # Case 2
+            if hasattr(parameters, arg_name) and not self._is_arg_default_value(arg_name):
+                setattr(parameters, arg_name, arg_value)
 
     def get_cmdline_parameters(self, default_vars=True, check_values=False, cmd_default_vars=True):
         """

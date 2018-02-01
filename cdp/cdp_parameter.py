@@ -7,12 +7,11 @@ import os
 from six import with_metaclass
 
 
-class CDPParameter(with_metaclass(abc.ABCMeta, object)):
-    @abc.abstractmethod
+class CDPParameter(object):
     def check_values(self):
         """Check that all of the variables in
         this parameter file are valid."""
-        raise NotImplementedError()
+        pass
 
     def load_parameter_from_py(self, parameter_file_path):
         """Initialize a parameter object from a Python script."""
