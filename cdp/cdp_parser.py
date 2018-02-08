@@ -284,22 +284,21 @@ class CDPParser(argparse.ArgumentParser):
                 for k in args.keys():
                     if k[0] != "-":
                         continue
-                    # try:
-                    if 1:
+                    try:
                         params = args[k]
                         option_strings = params.pop("aliases", [])
                         option_strings.insert(0, k)
                         params["type"] = eval(params.pop("type", "str"))
                         self.store_default_arguments(option_strings, params)
                         success = True
-                    # except:
-                    #    warnings.warn("failed to load param {} from json file {}".format(
-                    #        k,afile))
-                    #    pass
+                    except:
+                       warnings.warn("failed to load param {} from json file {}".format(
+                           k,afile))
+                       pass
         return success
 
     def store_default_arguments(self, options, params):
-        self.__default_args.append([options, params])
+        self.__default_args.insert(0,([options, params]))
 
     def print_available_defaults(self):
         p = argparse.ArgumentParser()
