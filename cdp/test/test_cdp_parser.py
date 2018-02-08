@@ -5,7 +5,30 @@ import os
 import sys
 import cdp.cdp_parameter
 import cdp.cdp_parser
+import os
 
+class TestCDPParserOverload(unittest.TestCase):
+    def setUp(self):
+        pth = os.path.join(os.path.dirname(__file__),"json_files")
+        self.my_parser = cdp.cdp_parser.CDPParser(None,[os.path.join(pth,"DefArgsCIA.json"),
+                                                    os.path.join(pth,"mydefs.json")])
+        self.my_parser.use("p")
+        self.my_parser.use("diags")
+        self.my_parser.use("mns2")
+        self.my_parser.use("mns")
+
+    def test_overload(self):
+        # print(self.my_parser.view_args())
+        p = self.my_parser.get_parameter()
+        self.assertTrue(hasattr(p,"modnames2"))
+        self.assertTrue(p.modnames2 == None)
+        self.assertTrue(hasattr(p,"modnames"))
+        self.assertTrue(p.modnames == "BBBB")
+
+    def test_overload_cmd_line(self):
+        self.my_parser.add_argument("--mns2","--modnames2",dest="modnames2",default="NEW")
+        p = self.my_parser.get_parameter()
+        self.assertTrue(p.modnames2 == "NEW")
 
 class TestCDPParser(unittest.TestCase):
 
