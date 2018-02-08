@@ -22,9 +22,9 @@ script:
   - conda update -q conda
   - conda config --set anaconda_upload no
 
-  - conda install python=$TRAVIS_PYTHON_VERSION output_viewer pyyaml dask distributed six -c conda-forge -c uvcdat -y
+  - conda install python=$TRAVIS_PYTHON_VERSION output_viewer pyyaml dask distributed six nose -c conda-forge -c uvcdat -y
 
-  - bash cdp/test/test.sh
+  - nosetests cdp/test/test_*.py
 
 after_success:
   - if [ "$TRAVIS_BRANCH" == "master" -a "$TRAVIS_PULL_REQUEST" == "false" ]; then
