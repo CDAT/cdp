@@ -20,6 +20,7 @@ class CDPParser(argparse.ArgumentParser):
         # conflict_handler='resolve' lets new args override older ones
         self.__default_args = []
         super(CDPParser, self).__init__(conflict_handler='resolve',
+                                        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
                                         *args, **kwargs)
         self.load_default_args(default_args_file)
         self.__args_namespace = None
@@ -245,17 +246,17 @@ class CDPParser(argparse.ArgumentParser):
 
     def combine_orig_and_other_params(self, orig_parameters, other_parameters, vars_to_ignore=[]):
         """Combine orig_parameters with all of the other_parameters, while ignoring vars_to_ignore"""
-        print('Deprication warning: please use combine_params() instead')
+        print('Depreciation warning: please use combine_params() instead')
         self.combine_params(None, orig_parameters, other_parameters, vars_to_ignore)
 
-    def get_parameters(self, cmdline_parameters=None, orig_parameters=None, other_parameters=[], vars_to_ignore=[], *args, **kwargs):
+    def get_parameters(self, cmdline_parameters=None, orig_parameters=None, other_parameters=[], vars_to_ignore=[], default_vars=True, cmd_default_vars=True, *args, **kwargs):
         """Get the parameters based on the command line arguments and return a list of them."""
         if not cmdline_parameters:
-            cmdline_parameters = self.get_cmdline_parameters(*args, **kwargs)
+            cmdline_parameters = self.get_cmdline_parameters(default_vars=default_vars, cmd_default_vars=cmd_default_vars, *args, **kwargs)
         if not orig_parameters:
-            orig_parameters = self.get_orig_parameters(*args, **kwargs)
+            orig_parameters = self.get_orig_parameters(default_vars=default_vars, cmd_default_vars=cmd_default_vars, *args, **kwargs)
         if other_parameters == []:
-            other_parameters = self.get_other_parameters(*args, **kwargs)
+            other_parameters = self.get_other_parameters(default_vars=default_vars, cmd_default_vars=cmd_default_vars, *args, **kwargs)
 
         self.combine_params(cmdline_parameters, orig_parameters, other_parameters, vars_to_ignore)
 
@@ -263,14 +264,25 @@ class CDPParser(argparse.ArgumentParser):
             return other_parameters
         elif orig_parameters:
             return [orig_parameters]
-        else:
+        elif cmdline_parameters:
             return [cmdline_parameters]
+
+        # user didn't give any command line options, so create a parameter from the
+        # defaults of the command line argument or the Parameter class.
+        elif cmd_default_vars:
+            p = self.__parameter_cls()
+            for arg_name, arg_value in vars(self.__args_namespace).items():
+                setattr(p, arg_name, arg_value)
+            return [p]
+        elif default_vars:
+            p = self.__parameter_cls()
+            return [p]
 
     def get_parameter(self, warning=False, *args, **kwargs):
         """Return the first Parameter in the list of Parameters."""
         if warning:
             print(
-                'Deprecation warning: Use get_parameters() instead, which returns a list of Parameters.')
+                'Depreciation warning: Use get_parameters() instead, which returns a list of Parameters.')
         return self.get_parameters(*args, **kwargs)[0]
 
     def load_default_args_from_json(self, files):
