@@ -498,6 +498,44 @@ class TestCDPParser(unittest.TestCase):
             # if os.path.exists('test_cmdline_args_with_default_values2.py'):
             #    os.remove('test_cmdline_args_with_default_values2.py')
             pass
+    
+    def test_without_any_params(self):
+            self.cdp_parser.add_argument(
+                '--param1',
+                type=str,
+                dest='param1',
+                default='param1_cmd_default',
+                required=False)
 
+            self.cdp_parser.add_argument(
+                '--new_param',
+                type=str,
+                dest='new_param',
+                default='new_param_cmd_default',
+                required=False)
+
+            # params should only have the defaults from the command line parser
+            # only vars and param1 are in the command line parser, make sure that param2 didn't show up
+            self.cdp_parser.add_args_and_values('')
+            params = self.cdp_parser.get_parameter()
+            self.assertTrue(hasattr(params, 'vars')) 
+            self.assertTrue(hasattr(params, 'param1'))
+            self.assertTrue(hasattr(params, 'new_param'))
+            self.assertTrue(hasattr(params, 'param2'))
+            self.assertEqual(params.vars, None)
+            self.assertEqual(params.param1, 'param1_cmd_default')
+            self.assertEqual(params.new_param, 'new_param_cmd_default')
+            self.assertEqual(params.param2, 'param2')
+
+            self.cdp_parser.add_args_and_values('')
+            params = self.cdp_parser.get_parameter(cmd_default_vars=False)
+            self.assertTrue(hasattr(params, 'vars')) 
+            self.assertTrue(hasattr(params, 'param1'))
+            self.assertTrue(hasattr(params, 'param2'))
+            self.assertFalse(hasattr(params, 'new_param'))
+            self.assertEqual(params.vars, ['default_vars'])
+            self.assertEqual(params.param1, 'param1')
+            self.assertEqual(params.param2, 'param2')
+    
 if __name__ == '__main__':
     unittest.main()
