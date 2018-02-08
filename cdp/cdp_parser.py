@@ -316,7 +316,7 @@ class CDPParser(argparse.ArgumentParser):
     def print_available_defaults(self):
         p = argparse.ArgumentParser()
         for opt, param in self.__default_args:
-            p.add_argument(*opt, **params)
+            p.add_argument(*opt, **param)
         p.print_help()
 
     def available_defaults(self):
