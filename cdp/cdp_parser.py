@@ -270,9 +270,11 @@ class CDPParser(argparse.ArgumentParser):
             for v in vars_to_granulate:
                 if not hasattr(param, v):
                     raise RuntimeError("Parameters object has no attribute '{}' to granulate.".format(v))
-                if not isinstance(getattr(param, v), collections.Iterable):
+                param_v = getattr(param, v)
+                if not isinstance(param_v, collections.Iterable):
                     raise RuntimeError("granulate option '{}' is not an iterable.".format(v))
-                vals_to_granulate.append(getattr(param, v))
+                if param_v:  # ignore [] 
+                    vals_to_granulate.append(param_v)
 
             # ex: [('ANN', 850.0), ('ANN', 250.0), ('DJF', 850.0), ('DJF', 250.0), ...]
             granulate_values = list(itertools.product(*vals_to_granulate))
