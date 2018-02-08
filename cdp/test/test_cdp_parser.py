@@ -40,7 +40,7 @@ class TestCDPParser(unittest.TestCase):
 
     def setUp(self):
         self.cdp_parser = self.MyCDPParser()
-        # Writing files in Python 3 seems to be asynchonous or something like that.
+        # Writing files in Python 3 seems to be asynchronous or something like that.
         # Hence we need to load pre-written files, but only *.py
         self.prefix = 'cdp/test/parameter_files/'
 
@@ -391,7 +391,7 @@ class TestCDPParser(unittest.TestCase):
             self.write_file('test_get_other_parameters_with_file_paths2.cfg', cfg_str2)
             self.write_file('test_get_other_parameters_with_file_paths.py', py_str)
 
-            # This is called when by the user when a cdp parser is initalized,
+            # This is called when by the user when a cdp parser is initialized,
             # so we have do to this here.
             self.cdp_parser.add_args_and_values(['-p', 'test_get_other_parameters_with_file_paths.py'])
 
@@ -536,6 +536,45 @@ class TestCDPParser(unittest.TestCase):
             self.assertEqual(params.vars, ['default_vars'])
             self.assertEqual(params.param1, 'param1')
             self.assertEqual(params.param2, 'param2')
-    
+
+    def test_granulate(self):
+        cfg_str = '[Diags1]\n'
+        cfg_str += "nums = [0, 1]\n"
+        cfg_str += "letters = [A, B, C]\n"
+        cfg_str += "faces = [':)']\n"
+        cfg_str += "dont_granulate = ['dont', 'granulate', 'this']\n"
+        cfg_str += "info = 'This is some information.'\n"
+        cfg_str += "granulate = [nums, letters, faces]\n"
+
+        try:
+            self.write_file('test_granulate.cfg', cfg_str)
+            self.cdp_parser.add_args_and_values(['-d', 'test_granulate.cfg'])
+            params = self.cdp_parser.get_parameters()
+            
+            self.assertEqual(len(params), 6)
+            self.assertEqual(getattr(params[0], 'nums'), [0])
+            self.assertEqual(getattr(params[0], 'letters'), ['A'])
+            self.assertEqual(getattr(params[1], 'nums'), [0])
+            self.assertEqual(getattr(params[1], 'letters'), ['B'])
+            self.assertEqual(getattr(params[2], 'nums'), [0])
+            self.assertEqual(getattr(params[2], 'letters'), ['C'])
+            self.assertEqual(getattr(params[3], 'nums'), [1])
+            self.assertEqual(getattr(params[3], 'letters'), ['A'])
+            self.assertEqual(getattr(params[4], 'nums'), [1])
+            self.assertEqual(getattr(params[4], 'letters'), ['B'])
+            self.assertEqual(getattr(params[5], 'nums'), [1])
+            self.assertEqual(getattr(params[5], 'letters'), ['C'])
+
+            for p in params:
+                self.assertEqual(getattr(p, 'faces'), [':)'])
+                self.assertEqual(getattr(p, 'dont_granulate'), ['dont', 'granulate', 'this'])
+                self.assertEqual(getattr(p, 'info'), 'This is some information.')
+                self.assertEqual(getattr(p, 'granulate'), ['nums', 'letters', 'faces'])
+
+        finally:
+            if os.path.exists('test_granulate.cfg'):
+                os.remove('test_granulate.cfg')
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -6,8 +6,11 @@ import abc
 import json
 import yaml
 import warnings
-from six import with_metaclass
 import ast
+import itertools
+import collections
+import copy
+from six import with_metaclass
 
 if sys.version_info[0] >= 3:
     import configparser
@@ -249,6 +252,39 @@ class CDPParser(argparse.ArgumentParser):
         print('Depreciation warning: please use combine_params() instead')
         self.combine_params(None, orig_parameters, other_parameters, vars_to_ignore)
 
+    def granulate(self, parameters):
+        """
+        Given a list of parameters objects, for each parameters with a `granulate` attribute,
+        create multiple parameters objects for each result in the Cartesian product of `granulate`.
+        """
+        final_parameters = []
+        for param in parameters:
+            if not hasattr(param, 'granulate') or (hasattr(param, 'granulate') and not param.granulate):
+                final_parameters.append(param)
+                continue
+
+            # granulate param
+            vars_to_granulate = param.granulate  # ex: ['seasons', 'plevs']
+            # check that all of the vars_to_granulate are iterables
+            vals_to_granulate = []  # ex: [['ANN', 'DJF', 'MAM'], [850.0, 250.0]]
+            for v in vars_to_granulate:
+                if not hasattr(param, v):
+                    raise RuntimeError("Parameters object has no attribute '{}' to granulate.".format(v))
+                if not isinstance(getattr(param, v), collections.Iterable):
+                    raise RuntimeError("granulate option '{}' is not an iterable.".format(v))
+                vals_to_granulate.append(getattr(param, v))
+
+            # ex: [('ANN', 850.0), ('ANN', 250.0), ('DJF', 850.0), ('DJF', 250.0), ...]
+            granulate_values = list(itertools.product(*vals_to_granulate))
+            for g_vals in granulate_values:
+                p = copy.deepcopy(param)
+                for i, g_val in enumerate(g_vals):
+                    # Make sure to insert a list with one element
+                    setattr(p, vars_to_granulate[i], [g_val])
+                final_parameters.append(p)
+
+        return final_parameters
+
     def get_parameters(self, cmdline_parameters=None, orig_parameters=None, other_parameters=[], vars_to_ignore=[], default_vars=True, cmd_default_vars=True, *args, **kwargs):
         """Get the parameters based on the command line arguments and return a list of them."""
         if not cmdline_parameters:
@@ -261,11 +297,11 @@ class CDPParser(argparse.ArgumentParser):
         self.combine_params(cmdline_parameters, orig_parameters, other_parameters, vars_to_ignore)
 
         if other_parameters != []:
-            return other_parameters
+            return self.granulate(other_parameters)
         elif orig_parameters:
-            return [orig_parameters]
+            return self.granulate([orig_parameters])
         elif cmdline_parameters:
-            return [cmdline_parameters]
+            return self.granulate([cmdline_parameters])
 
         # user didn't give any command line options, so create a parameter from the
         # defaults of the command line argument or the Parameter class.
@@ -273,10 +309,10 @@ class CDPParser(argparse.ArgumentParser):
             p = self.__parameter_cls()
             for arg_name, arg_value in vars(self.__args_namespace).items():
                 setattr(p, arg_name, arg_value)
-            return [p]
+            return self.granulate([p])
         elif default_vars:
             p = self.__parameter_cls()
-            return [p]
+            return self.granulate([p])
 
     def get_parameter(self, warning=False, *args, **kwargs):
         """Return the first Parameter in the list of Parameters."""
@@ -373,6 +409,13 @@ class CDPParser(argparse.ArgumentParser):
             type=str,
             dest='scheduler_addr',
             help='Address of the scheduler in the form of IP_ADDRESS:PORT. Used when running in distributed mode.',
+            required=False)
+        self.add_argument(
+            '-g', '--granulate',
+            type=str,
+            nargs='+',
+            dest='granulate',
+            help='A list of variables to granulate.',
             required=False)
 
     def add_args_and_values(self, arg_list):
