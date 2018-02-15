@@ -11,9 +11,10 @@ build:
 
 requirements:
   build:
-    - python
+    - python {{ python }}
     - setuptools
   run:
+    - python {{ python }}
     - output_viewer
     - pyyaml
     - dask
