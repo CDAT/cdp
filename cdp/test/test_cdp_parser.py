@@ -7,7 +7,6 @@ import cdp.cdp_parameter
 import cdp.cdp_parser
 import os
 
-'''
 class TestCDPParserOverload(unittest.TestCase):
     def setUp(self):
         pth = os.path.join(os.path.dirname(__file__),"json_files")
@@ -30,7 +29,6 @@ class TestCDPParserOverload(unittest.TestCase):
         self.my_parser.add_argument("--mns2","--modnames2",dest="modnames2",default="NEW")
         p = self.my_parser.get_parameter()
         self.assertTrue(p.modnames2 == "NEW")
-'''
 
 class TestCDPParser(unittest.TestCase):
 
