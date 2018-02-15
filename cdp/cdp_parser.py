@@ -10,6 +10,9 @@ import ast
 import itertools
 import collections
 import copy
+import StringIO
+import random
+import hashlib
 from six import with_metaclass
 
 if sys.version_info[0] >= 3:
@@ -123,12 +126,41 @@ class CDPParser(argparse.ArgumentParser):
 
         return parameters
 
-    def get_parameters_from_cfg(self, json_file, default_vars=True, check_values=True, cmd_default_vars=True):
+    def _create_cfg_hash_titles(self, cfg_file):
+        """
+        Given a path to a cfg file, for any title '[#]', create a hash of it's contents
+        and change the title to that. Then return the StringIO object.
+        """
+        lines = []
+        with open(cfg_file) as f:
+            lines = f.readlines()
+
+        h_sha256 = hashlib.sha256()
+        i = 0
+        
+        while i < len(lines):
+            if lines[i] in ['[#]\n', '[#]']:
+                replace_idx = i
+                str_list = []
+                i += 1
+                while i < len(lines) and not lines[i].startswith('['):
+                    str_list.append(lines[i])
+                    i += 1
+                str_list.append(str(random.random()))  # randomize the hash even more
+                h_sha256.update(''.join(str_list).encode())
+                lines[replace_idx] = '[{}]'.format(h_sha256.hexdigest())
+            else:
+                i += 1
+                
+        return StringIO.StringIO('\n'.join(lines))
+
+    def get_parameters_from_cfg(self, cfg_file, default_vars=True, check_values=True, cmd_default_vars=True):
         """Given a cfg file, return the parameters from it."""
         parameters = []
 
+        cfg_file_obj = self._create_cfg_hash_titles(cfg_file)
         config = configparser.ConfigParser()
-        config.read(json_file)
+        config.readfp(cfg_file_obj)
 
         for section in config.sections():
             p = self.__parameter_cls()
