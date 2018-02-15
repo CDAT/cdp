@@ -567,7 +567,8 @@ class TestCDPParser(unittest.TestCase):
         cfg_str += "faces = [':)']\n"
         cfg_str += "dont_granulate = ['dont', 'granulate', 'this']\n"
         cfg_str += "info = 'This is some information.'\n"
-        cfg_str += "granulate = [nums, letters, faces]\n"
+        cfg_str += "empty=[]\n"
+        cfg_str += "granulate = [nums, letters, faces, empty]\n"
 
         try:
             self.write_file('test_granulate.cfg', cfg_str)
@@ -592,12 +593,42 @@ class TestCDPParser(unittest.TestCase):
                 self.assertEqual(getattr(p, 'faces'), [':)'])
                 self.assertEqual(getattr(p, 'dont_granulate'), ['dont', 'granulate', 'this'])
                 self.assertEqual(getattr(p, 'info'), 'This is some information.')
-                self.assertEqual(getattr(p, 'granulate'), ['nums', 'letters', 'faces'])
+                self.assertEqual(getattr(p, 'granulate'), ['nums', 'letters', 'faces', 'empty'])
 
         finally:
             if os.path.exists('test_granulate.cfg'):
                 os.remove('test_granulate.cfg')
 
+    def test_cfg_hash(self):
+        cfg_str = '[#]\n'
+        cfg_str += '[#]\n'
+        cfg_str += "num = 0\n"
+        cfg_str += '[#]\n'
+        cfg_str += "num = 0\n"
+        cfg_str += "num1 = 1\n"
+        cfg_str += '[Diags1]\n'
+        cfg_str += "num = 0\n"
+        cfg_str += "num = 0\n"
+        cfg_str += '[#]\n'
+        cfg_str += "num = 0\n"
+        cfg_str += "num1 = 1\n"
+        cfg_str += '[#]'
 
+        try:
+            self.write_file('test_cfg_hash.cfg', cfg_str)
+            self.cdp_parser.add_args_and_values(['-d', 'test_cfg_hash.cfg'])
+            params = self.cdp_parser.get_parameters()
+            self.assertEqual(len(params), 6)
+            self.assertEqual(getattr(params[1], 'num'), 0)
+            self.assertEqual(getattr(params[2], 'num'), 0)
+            self.assertEqual(getattr(params[2], 'num1'), 1)
+            self.assertEqual(getattr(params[3], 'num'), 0)
+            self.assertEqual(getattr(params[4], 'num'), 0)
+            self.assertEqual(getattr(params[4], 'num1'), 1)
+
+        finally:
+            if os.path.exists('test_cfg_hash.cfg'):
+                os.remove('test_cfg_hash.cfg')
+        
 if __name__ == '__main__':
     unittest.main()
