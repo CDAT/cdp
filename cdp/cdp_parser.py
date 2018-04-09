@@ -152,7 +152,6 @@ class CDPParser(argparse.ArgumentParser):
                 lines[replace_idx] = '[{}]'.format(h_sha256.hexdigest())
             else:
                 i += 1
-
         return StringIO('\n'.join(lines))
 
     def get_parameters_from_cfg(self, cfg_file, default_vars=True, check_values=True, cmd_default_vars=True):
@@ -160,7 +159,8 @@ class CDPParser(argparse.ArgumentParser):
         parameters = []
 
         cfg_file_obj = self._create_cfg_hash_titles(cfg_file)
-        config = configparser.ConfigParser(strict=False)  # Allow for two lines to be the same
+        kwargs = {'strict': False} if sys.version_info[0] >= 3 else {}  # strict keyword doesn't work in Python 2
+        config = configparser.ConfigParser(**kwargs)  # Allow for two lines to be the same
         config.readfp(cfg_file_obj)
 
         for section in config.sections():
