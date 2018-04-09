@@ -10,15 +10,16 @@ import ast
 import itertools
 import collections
 import copy
-import StringIO
 import random
 import hashlib
 from six import with_metaclass
 
 if sys.version_info[0] >= 3:
     import configparser
+    from io import StringIO
 else:
     import ConfigParser as configparser
+    from StringIO import StringIO
 
 
 class CDPParser(argparse.ArgumentParser):
@@ -151,15 +152,15 @@ class CDPParser(argparse.ArgumentParser):
                 lines[replace_idx] = '[{}]'.format(h_sha256.hexdigest())
             else:
                 i += 1
-                
-        return StringIO.StringIO('\n'.join(lines))
+
+        return StringIO('\n'.join(lines))
 
     def get_parameters_from_cfg(self, cfg_file, default_vars=True, check_values=True, cmd_default_vars=True):
         """Given a cfg file, return the parameters from it."""
         parameters = []
 
         cfg_file_obj = self._create_cfg_hash_titles(cfg_file)
-        config = configparser.ConfigParser()
+        config = configparser.ConfigParser(strict=False)  # Allow for two lines to be the same
         config.readfp(cfg_file_obj)
 
         for section in config.sections():
