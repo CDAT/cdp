@@ -67,11 +67,7 @@ class CDPParser(argparse.ArgumentParser):
         """
         # each cmdline_arg is either '-*' or '--*'.
         for cmdline_arg in self._option_string_actions:
-            #print('examining arg == self._option_string_actions[cmdline_arg].dest: {} == {}'.format(arg, self._option_string_actions[cmdline_arg].dest))
-            #print('examining cmdline_arg in self.cmd_used: {} in {}'.format(cmdline_arg, self.cmd_used))
-            # if arg == self._option_string_actions[cmdline_arg].dest and cmdline_arg in self.cmd_used:
             if arg == self._option_string_actions[cmdline_arg].dest and self._was_command_used(cmdline_arg):
-                #print('{} IS NOT SET TO ITS DEFAULT VALUE!'.format(arg))
                 return False
         return True
 
@@ -238,10 +234,7 @@ class CDPParser(argparse.ArgumentParser):
         So the only use of the default in a cmdline arg is when there's nothing for it in parameters.
         """
         for arg_name, arg_value in vars(self.__args_namespace).items():
-            #print('Examining (arg, value): ({}, {})'.format(arg_name, arg_value))
             if not cmd_default_vars and self._is_arg_default_value(arg_name):
-                #print('_is_arg_default_value(arg_name): {}'.format(self._is_arg_default_value(arg_name)))
-                #print('NOT USING: {}'.format(arg_name))
                 continue
 
             # Case 1
@@ -291,10 +284,9 @@ class CDPParser(argparse.ArgumentParser):
 
         # might just combine cmdline_params with orig_params
         elif not other_parameters and orig_parameters and cmdline_parameters:
-            #print('ADDING CMDLINE_PARAMETERS TO ORIG_PARAMETERS.')
             for var in cmdline_parameters.__dict__:
-                if var not in vars_to_ignore:
-                    #print('ADDING {}'.format(var))
+                if var not in vars_to_ignore and self._was_command_used(var):
+                    # Only add it if it was not in param and was passed from cmd line
                     orig_parameters.__dict__[var] = cmdline_parameters.__dict__[var]
 
     def combine_orig_and_other_params(self, orig_parameters, other_parameters, vars_to_ignore=[]):
@@ -345,7 +337,6 @@ class CDPParser(argparse.ArgumentParser):
             orig_parameters = self.get_orig_parameters(default_vars=default_vars, cmd_default_vars=cmd_default_vars, *args, **kwargs)
         if other_parameters == []:
             other_parameters = self.get_other_parameters(default_vars=default_vars, cmd_default_vars=cmd_default_vars, *args, **kwargs)
-
         self.combine_params(cmdline_parameters, orig_parameters, other_parameters, vars_to_ignore)
 
         if other_parameters != []:
