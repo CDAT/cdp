@@ -9,26 +9,66 @@ import os
 
 class TestCDPParserOverload(unittest.TestCase):
     def setUp(self):
-        pth = os.path.join(os.path.dirname(__file__),"json_files")
-        self.my_parser = cdp.cdp_parser.CDPParser(None,[os.path.join(pth,"DefArgsCIA.json"),
-                                                    os.path.join(pth,"mydefs.json")])
+        pth = os.path.join(os.path.dirname(__file__), "json_files")
+        self.my_parser = cdp.cdp_parser.CDPParser(None, [os.path.join(pth, "DefArgsCIA.json"),
+                                                    os.path.join(pth, "mydefs.json")])
         self.my_parser.use("p")
         self.my_parser.use("diags")
         self.my_parser.use("mns2")
         self.my_parser.use("mns")
 
     def test_overload(self):
-        # print(self.my_parser.view_args())
         p = self.my_parser.get_parameter()
-        self.assertTrue(hasattr(p,"modnames2"))
+        self.assertTrue(hasattr(p, "modnames2"))
         self.assertTrue(p.modnames2 == None)
-        self.assertTrue(hasattr(p,"modnames"))
+        self.assertTrue(hasattr(p, "modnames"))
         self.assertTrue(p.modnames == "BBBB")
 
     def test_overload_cmd_line(self):
-        self.my_parser.add_argument("--mns2","--modnames2",dest="modnames2",default="NEW")
+        self.my_parser.add_argument("--mns2", "--modnames2", dest="modnames2", default="NEW")
         p = self.my_parser.get_parameter()
         self.assertTrue(p.modnames2 == "NEW")
+
+
+class TestCDPParserPMP(unittest.TestCase):
+    def setUp(self):
+        self.prefix = 'cdp/test/parameter_files/'
+
+        self.parser = cdp.cdp_parser.CDPParser()
+        self.parser.add_argument("-a", "--Aarg", type=int, default=7, help="A value")
+        self.parser.add_argument("-b", "--Barg", type=int, default=8, help="A value")
+        self.parser.add_argument("-c", "--Carg", type=int, default=9, help="A value")
+        self.parser.add_argument("-d", "--Darg", type=int, default=6, help="A value")
+
+    def test_with_py(self):
+        self.parser.add_args_and_values(['-p', self.prefix + 'test_with_py.py'])
+        p = self.parser.get_parameter()
+        self.assertEqual(p.Aarg, 10)
+        self.assertEqual(p.Barg, 11)
+        self.assertEqual(p.Carg, 9)
+        self.assertEqual(p.Darg, 13)
+
+        self.parser.add_args_and_values(['-p', self.prefix + 'test_with_py.py', '--Aarg', '78'])
+        p = self.parser.get_parameter()
+        self.assertEqual(p.Aarg, 78)
+        self.assertEqual(p.Barg, 11)
+        self.assertEqual(p.Carg, 9)
+        self.assertEqual(p.Darg, 13)
+
+        self.parser.add_args_and_values(['-p', self.prefix + 'test_with_py.py', '--Aarg', '78'])
+        p = self.parser.get_parameter(cmd_default_vars=False)
+        self.assertEqual(p.Aarg, 78)
+        self.assertEqual(p.Barg, 11)
+        self.assertEqual(p.Darg, 13)
+        self.assertFalse(hasattr(p, 'Carg'))
+
+        self.parser.add_args_and_values(['--Aarg', '78'])
+        p = self.parser.get_parameter()
+        self.assertEqual(p.Aarg, 78)
+        self.assertEqual(p.Barg, 8)
+        self.assertEqual(p.Carg, 9)
+        self.assertEqual(p.Darg, 6)
+
 
 class TestCDPParser(unittest.TestCase):
 
@@ -115,15 +155,15 @@ class TestCDPParser(unittest.TestCase):
             default='param2_cmd_default',
             required=False)
 
-        p = self.cdp_parser.get_orig_parameters(default_vars=False, cmd_default_vars=False)
+        p = self.cdp_parser.get_orig_parameters()
         self.assertEqual(p.param1, 'py_param1')
         self.assertEqual(getattr(p, 'param2', None), None)
 
         self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_get_orig_parameters.py'])
-        p = self.cdp_parser.get_orig_parameters(default_vars=False, cmd_default_vars=True)
+        p = self.cdp_parser.get_parameter()
         self.assertEqual(p.param2, 'param2_cmd_default')
         self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_get_orig_parameters.py', '--param2', 'new_param2'])
-        p = self.cdp_parser.get_parameter(default_vars=False, cmd_default_vars=True)
+        p = self.cdp_parser.get_parameter()
         self.assertEqual(p.param2, 'new_param2')
 
     def test_get_other_parameters(self):
@@ -143,7 +183,7 @@ class TestCDPParser(unittest.TestCase):
         try:
             self.write_file('test_get_other_parameters.json', json_str)
             self.cdp_parser.add_args_and_values(['-d', 'test_get_other_parameters.json'])
-            p = self.cdp_parser.get_other_parameters(default_vars=True)
+            p = self.cdp_parser.get_parameters()
 
             self.assertEqual(len(p), 2)
             self.assertTrue(hasattr(p[0], 'param1'))
@@ -154,7 +194,7 @@ class TestCDPParser(unittest.TestCase):
             self.assertEqual(p[1].param2, 'param2')
 
             self.cdp_parser.add_args_and_values(['-d', 'test_get_other_parameters.json'])
-            p = self.cdp_parser.get_other_parameters(default_vars=False)
+            p = self.cdp_parser.get_other_parameters()
             self.assertEqual(getattr(p[1], 'param2', None), None)
 
             self.cdp_parser.add_argument(
@@ -165,12 +205,12 @@ class TestCDPParser(unittest.TestCase):
                 required=False)
 
             self.cdp_parser.add_args_and_values(['-d', 'test_get_other_parameters.json'])
-            p = self.cdp_parser.get_other_parameters(default_vars=False, cmd_default_vars=False)
+            p = self.cdp_parser.get_other_parameters()
             self.assertEqual(p[1].param1, 'one')
             self.assertEqual(getattr(p[1], 'param2', None), None)
 
             self.cdp_parser.add_args_and_values(['-d', 'test_get_other_parameters.json'])
-            p = self.cdp_parser.get_other_parameters(default_vars=False, cmd_default_vars=True)
+            p = self.cdp_parser.get_parameters()
             self.assertEqual(p[1].param2, 'param2_cmd_default')
             self.cdp_parser.add_args_and_values(['-d', 'test_get_other_parameters.json', '--param2', 'new_param2'])
             # when mixing and matching any two of the three input options(*py, *cfg/*json, cmdline args),
@@ -195,21 +235,21 @@ class TestCDPParser(unittest.TestCase):
         params2 = self.cdp_parser.get_parameter()
         self.assertEqual(params.vars, ['v1', 'v2', 'v3'])
         self.assertEqual(params2.vars, ['v1', 'v2', 'v3'])
-        self.assertEqual(params.default_val, 'default_val')
+        self.assertEqual(params2.default_val, 'default_val')
 
         # default_vars=True, check_values=True, cmd_default_vars=True
         # testing cmd_default_vars=False
-        params = self.cdp_parser.get_cmdline_parameters(cmd_default_vars=False)
+        params = self.cdp_parser.get_cmdline_parameters()
         self.assertEqual(getattr(params, 'default_val', None), None)
 
         # testing default_vars=True and cmd_default_vars=False
         self.cdp_parser.add_args_and_values(['--default_val', 'cmdline_val'])
-        params = self.cdp_parser.get_cmdline_parameters(cmd_default_vars=False)
+        params = self.cdp_parser.get_parameter(cmd_default_vars=False)
         self.assertEqual(params.vars, ['default_vars'])
 
         # testing default_vars=False and cmd_default_vars=False
         self.cdp_parser.add_args_and_values(['--default_val', 'cmdline_val'])
-        params = self.cdp_parser.get_cmdline_parameters(default_vars=False, cmd_default_vars=False)
+        params = self.cdp_parser.get_parameter(default_vars=False, cmd_default_vars=False)
         self.assertEqual(getattr(params, 'vars', None), None)
 
     def test__were_cmdline_args_used(self):
@@ -473,7 +513,7 @@ class TestCDPParser(unittest.TestCase):
         finally:
             if os.path.exists('test__is_arg_default_value.py'):
                 os.remove('test__is_arg_default_value.py')
-
+    
     def test_cmdline_args_with_default_values(self):
         self.cdp_parser.add_argument(
                 '--default_val',
@@ -629,6 +669,6 @@ class TestCDPParser(unittest.TestCase):
         finally:
             if os.path.exists('test_cfg_hash.cfg'):
                 os.remove('test_cfg_hash.cfg')
-        
+
 if __name__ == '__main__':
     unittest.main()
