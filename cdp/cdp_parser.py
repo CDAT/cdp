@@ -56,8 +56,10 @@ class CDPParser(argparse.ArgumentParser):
         run the script that has this parser."""
         # self.cmd_used is like: ['something.py', '-p', 'test.py', '--s1', 'something']
         for cmd in self.cmd_used:
-            if cmdline_arg in cmd:
-                return True
+            # Sometimes, a command is run with '=': 'driver.py --something=this'
+            for c in cmd.split('='):
+                if cmdline_arg == c:
+                    return True
         return False
 
     def _is_arg_default_value(self, arg):
