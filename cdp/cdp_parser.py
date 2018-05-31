@@ -418,7 +418,7 @@ class CDPParser(argparse.ArgumentParser):
     def available_defaults(self):
         return [x[0] for x in self.__default_args]
 
-    def use(self, options):
+    def use(self, options, group=None):
         if not isinstance(options, (list, tuple)):
             options = [options]
         for option in options:
@@ -434,7 +434,10 @@ class CDPParser(argparse.ArgumentParser):
                     match = True
                     break
             if match:
-                self.add_argument(*opts, **params)
+                if group is None:
+                    self.add_argument(*opts, **params)
+                else:
+                    group.add_argument(*opts, **params)
             else:
                 raise RuntimeError(
                     "could not match {} to any of the default arguments {}".format(
