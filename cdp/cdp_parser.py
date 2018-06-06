@@ -397,7 +397,15 @@ class CDPParser(argparse.ArgumentParser):
                         params = args[k]
                         option_strings = params.pop("aliases", [])
                         option_strings.insert(0, k)
-                        params["type"] = eval(params.pop("type", "str"))
+                        # Sometime we can't set a type
+                        # like action="store_true"
+                        # setting it to null in json file
+                        # leads to exception in eval
+                        # hence not setting it
+                        try:
+                            params["type"] = eval(params.pop("type", "str"))
+                        except:
+                            pass
                         self.store_default_arguments(option_strings, params)
                         success = True
                     except:
