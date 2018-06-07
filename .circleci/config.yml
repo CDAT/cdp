@@ -62,6 +62,7 @@ aliases:
        export PATH=${HOME}/project/$WORKDIR/miniconda/bin:$PATH
        conda install conda-build anaconda-client
        conda config --set anaconda_upload no
+       conda install cdp cdms2 genutil -c conda-forge -c cdat -y
        export CONDA_BLD_PATH=`pwd`/conda_build
        git clone git://github.com/cdat/conda-recipes
        cd conda-recipes
