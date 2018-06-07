@@ -19,9 +19,9 @@ dependencies:
 test:
   override:
     - PATH=${HOME}/miniconda/bin:${PATH} source activate python2
-    - UVCDAT_ANONYMOUS_LOG=False nosetests cdp/test/test_*.py
+    - UVCDAT_ANONYMOUS_LOG=False find cdp/test/test_*.py -exec python {} \;
     - PATH=${HOME}/miniconda/bin:${PATH} source activate python3
-    - UVCDAT_ANONYMOUS_LOG=False nosetests cdp/test/test_*.py
+    - UVCDAT_ANONYMOUS_LOG=False find cdp/test/test_*.py -exec python {} \;
 
     - >
       if [ $? == 0 -a $CIRCLE_BRANCH == "master" ]; then

@@ -24,7 +24,7 @@ script:
 
   - conda install python=$TRAVIS_PYTHON_VERSION output_viewer pyyaml dask distributed six nose -c conda-forge -c uvcdat -y
 
-  - nosetests cdp/test/test_*.py
+  - find cdp/test/test_*.py -exec python {} \;
 
 after_success:
   - if [ "$TRAVIS_BRANCH" == "master" -a "$TRAVIS_PULL_REQUEST" == "false" ]; then
