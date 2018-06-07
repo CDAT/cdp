@@ -41,11 +41,13 @@ aliases:
        export UVCDAT_ANONYMOUS_LOG=False
        set -e
        source activate py2
-       nosetests cdp/test/test_*.py
+       #nosetests cdp/test/test_*.py
+       find cdp/test/test_*.py -exec python {} \;
        RESULT=$?
        echo "**** py2 test result: "${RESULT}
        source activate py3
-       nosetests cdp/test/test_*.py
+       #nosetests cdp/test/test_*.py
+       find cdp/test/test_*.py -exec python {} \;
        PY3_RESULT=$?
        echo "**** py3 test result: "${PY3_RESULT}
        RESULT=$(( $RESULT + $PY3_RESULT))
