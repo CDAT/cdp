@@ -1,0 +1,111 @@
+version: 2
+
+checkout:
+  post:
+    - ./ci-support/checkout_merge_commit.sh
+        
+aliases:
+
+  - &setup_miniconda
+    name: setup_miniconda
+    command: |
+      mkdir -p workspace
+      git clone -b validateNightly git@github.com:CDAT/cdat workspace/cdat
+      python workspace/cdat/scripts/install_miniconda.py -w $WORKDIR -p 'py3'
+      
+  - &create_conda_env
+    name: create_conda_env
+    command: |
+       export PATH=$WORKDIR/miniconda/bin:$PATH
+       conda config --set always_yes yes --set changeps1 no
+       conda update -y -q conda
+       conda config --set anaconda_upload no
+       conda create -n py2 python=2.7 output_viewer pyyaml dask distributed six nose -c conda-forge -c cdat -y
+       conda create -n py3 python=3.6 output_viewer pyyaml dask distributed six nose -c conda-forge -c cdat -y
+
+  - &setup_cdp
+    name: setup_cdp
+    command: |
+       export PATH=$WORKDIR/miniconda/bin:$PATH
+       export UVCDAT_ANONYMOUS_LOG=False
+       source activate py3
+       python setup.py install
+       source activate py2
+       rm -rf build
+       python setup.py install
+
+  - &run_cdp_tests
+    name: run_cdp_tests
+    command: |
+       export PATH=$WORKDIR/miniconda/bin:$PATH
+       export UVCDAT_ANONYMOUS_LOG=False
+       set -e
+       source activate py2
+       nosetests cdp/test/test_*.py
+       RESULT=$?
+       echo "*** py2 test result: "${RESULT}
+       source activate py3
+       nosetests cdp/test/test_*.py
+       PY3_RESULT=$?
+       echo "*** py3 test result: "${PY3_RESULT}
+       RESULT=$(( $RESULT + $PY3_RESULT))
+       exit $RESULT
+
+  - &conda_upload
+    name: conda_upload
+    command: |
+       if [[ $CIRCLE_BRANCH != 'migrateToCircleCI' ]]; then
+          exit 0
+       fi
+       export PATH=${HOME}/project/$WORKDIR/miniconda/bin:$PATH
+       conda install conda-build anaconda-client
+       conda config --set anaconda_upload no
+       export CONDA_BLD_PATH=`pwd`/conda_build
+       git clone git://github.com/cdat/conda-recipes
+       cd conda-recipes
+       export PKG_NAME=cdp
+       export USER=cdat
+       export VERSION=8.0
+       export LABEL=nightly
+       python ./prep_for_build.py -l $VERSION
+       conda build $PKG_NAME -c cdat/label/nightly -c conda-forge -c cdat 
+       conda build $PKG_NAME -c cdat/label/nightly -c conda-forge -c cdat --python=3.6
+       anaconda -t $CONDA_UPLOAD_TOKEN upload -u $USER -l $LABEL $CONDA_BLD_PATH/$OS/$PKG_NAME-$VERSION.`date +%Y*`0.tar.bz2 --force
+
+jobs:
+  macos_cdp:
+    macos:
+      xcode: "9.2.0"
+    environment:
+      WORKDIR: "workspace/test_macos_cdp"
+      OS: "osx-64"
+    steps:
+      - checkout
+      - run: *setup_miniconda
+      - run: *create_conda_env
+      - run: *setup_cdp
+      - run: *run_cdp_tests
+      - run: *conda_upload
+
+  linux_cdp:
+    machine:
+      image: circleci/classic:latest
+    environment:
+      WORKDIR: "workspace/test_linux_cdp"
+      OS: "linux-64"
+    steps:
+      - checkout
+      - run: *setup_miniconda
+      - run: *create_conda_env
+      - run: *setup_cdp
+      - run: *run_cdp_tests
+      - run: *conda_upload
+
+workflows:
+  version: 2
+  cdp:
+    jobs:
+      - macos_cdp
+      - linux_cdp
+
+
