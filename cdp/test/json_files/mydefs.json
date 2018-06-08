@@ -8,6 +8,12 @@
 		"help": "A list offff names that can be used to loop through modpath",
 		"type": "ast.literal_eval"
 	},
+    "--store": {
+        "action": "store_true",
+        "type": null,
+        "help": "store it",
+        "default": false
+    },
 	"--mns2": {
 		"aliases": [
 			"--modnames2"

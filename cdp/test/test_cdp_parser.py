@@ -17,6 +17,15 @@ class TestCDPParserOverload(unittest.TestCase):
         self.my_parser.use("mns2")
         self.my_parser.use("mns")
 
+    def test_load_from_json_and_use_only_one(self):
+        self.my_parser.use("store")
+        nm_spc = self.my_parser.parse_args([])
+        actual_used = []
+        for att in dir(nm_spc):
+            if not att[0] == "_":
+                actual_used.append(att)
+        self.assertEqual(sorted(actual_used),['modnames', 'modnames2', 'other_parameters', 'parameters', 'store'])
+
     def test_overload(self):
         p = self.my_parser.get_parameter()
         self.assertTrue(hasattr(p, "modnames2"))

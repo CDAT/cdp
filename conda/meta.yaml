@@ -4,7 +4,7 @@ about:
 
 package:
   name: cdp
-  version: 3.1.2018.06.08.12.15.{{ GIT_DESCRIBE_HASH }}
+  version: {{ environ['VERSION'] }}
 
 source:
   git_url: https://github.com/CDAT/cdp.git
