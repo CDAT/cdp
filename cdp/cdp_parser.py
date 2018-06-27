@@ -27,7 +27,6 @@ class CDPParser(argparse.ArgumentParser):
         # conflict_handler='resolve' lets new args override older ones
         self.__default_args = []
         super(CDPParser, self).__init__(conflict_handler='resolve',
-                                        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
                                         *args, **kwargs)
         self.load_default_args(default_args_file)
         self.__args_namespace = None
