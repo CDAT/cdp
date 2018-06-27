@@ -2,17 +2,14 @@ from __future__ import print_function
 
 import sys
 import argparse
-import abc
 import json
 import yaml
 import warnings
-import ast
 import itertools
 import collections
 import copy
 import random
 import hashlib
-from six import with_metaclass
 
 if sys.version_info[0] >= 3:
     import configparser
@@ -23,10 +20,12 @@ else:
 
 
 class CDPParser(argparse.ArgumentParser):
-    def __init__(self, parameter_cls=None, default_args_file=[], *args, **kwargs):
+    def __init__(self, parameter_cls=None, default_args_file=[],
+                 formatter_class=argparse.ArgumentDefaultsHelpFormatter, *args, **kwargs):
         # conflict_handler='resolve' lets new args override older ones
         self.__default_args = []
         super(CDPParser, self).__init__(conflict_handler='resolve',
+                                        formatter_class=formatter_class,
                                         *args, **kwargs)
         self.load_default_args(default_args_file)
         self.__args_namespace = None
