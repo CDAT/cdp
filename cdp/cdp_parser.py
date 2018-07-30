@@ -103,6 +103,7 @@ class CDPParser(argparse.ArgumentParser):
 
         if check_values:
             parameter.check_values()
+            self._check_values_with_cmd_args(parameter)
 
         return parameter
 
@@ -124,6 +125,7 @@ class CDPParser(argparse.ArgumentParser):
 
                 if check_values:
                     p.check_values()
+                    self._check_values_with_cmd_args(p)
 
                 parameters.append(p)
 
@@ -177,6 +179,7 @@ class CDPParser(argparse.ArgumentParser):
 
             if check_values:
                 p.check_values()
+                self._check_values_with_cmd_args(p)
 
             parameters.append(p)
 
@@ -242,8 +245,22 @@ class CDPParser(argparse.ArgumentParser):
 
         if check_values:
             parameter.check_values()
+            self._check_values_with_cmd_args(parameter)
 
         return parameter
+
+    def _check_values_with_cmd_args(self, parameter):
+        """
+        Check that all parameters used are able to be
+        used by via command line arguments.
+        """
+        acceptable_args = vars(self.view_args())
+
+        for arg_name in vars(parameter):
+            if arg_name not in acceptable_args:
+                msg = '{} is not a valid parameter'.format(arg_name)
+                msg += ' because it\'s not defined in the parser.'
+                raise RuntimeError(msg)
 
     def _add_default_values(self, parameter, default_vars=False, cmd_default_vars=False):
         """

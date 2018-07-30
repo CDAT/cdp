@@ -520,8 +520,8 @@ class TestCDPParser(unittest.TestCase):
             self.assertFalse(self.cdp_parser._is_arg_default_value('no_default_val'))
 
         finally:
-            if os.path.exists('test__is_arg_default_value.py'):
-                os.remove('test__is_arg_default_value.py')
+            if os.path.exists('test__is_arg_default_value.cfg'):
+                os.remove('test__is_arg_default_value.cfg')
     
     def test_cmdline_args_with_default_values(self):
         self.cdp_parser.add_argument(
@@ -678,6 +678,14 @@ class TestCDPParser(unittest.TestCase):
         finally:
             if os.path.exists('test_cfg_hash.cfg'):
                 os.remove('test_cfg_hash.cfg')
+
+    def test_check_values_with_cmd_args(self):
+        self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_check_values_with_cmd_args.py'])
+        self.assertRaises(RuntimeError, self.cdp_parser.get_parameters, check_values=True)
+        
+        self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_check_values_with_cmd_args2.py'])
+        params = self.cdp_parser.get_parameters(check_values=True)
+
 
 if __name__ == '__main__':
     unittest.main()
