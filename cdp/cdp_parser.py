@@ -399,6 +399,10 @@ class CDPParser(argparse.ArgumentParser):
 
     def load_default_args_from_json(self, files):
         """Take in a list of json files (or a single json file) and create the args from it."""
+        # This is needed for the loading from JSON files,
+        # because the type can be ast.literal_eval.
+        import ast
+
         if not isinstance(files, (list, tuple)):
             files = [files]
         success = None
