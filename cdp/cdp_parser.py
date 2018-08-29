@@ -91,7 +91,7 @@ class CDPParser(argparse.ArgumentParser):
         if self.__args_namespace is None:
             self.__args_namespace = self.parse_args()            
 
-    def get_orig_parameters(self, check_values=False):
+    def get_orig_parameters(self, check_values=False, argparse_vals_only=True):
         """
         Returns the parameters created by -p. If -p wasn't used, returns None.
         """
@@ -111,11 +111,12 @@ class CDPParser(argparse.ArgumentParser):
 
         if check_values:
             parameter.check_values()
-            self._check_values_with_cmd_args(parameter)
+        if argparse_vals_only:
+            self._usable_via_cmdline_args(parameter)
 
         return parameter
 
-    def get_parameters_from_json(self, json_file, check_values=False):
+    def get_parameters_from_json(self, json_file, check_values=False, argparse_vals_only=True):
         """
         Given a json file, return the parameters from it.
         """
@@ -135,7 +136,8 @@ class CDPParser(argparse.ArgumentParser):
 
                 if check_values:
                     p.check_values()
-                    self._check_values_with_cmd_args(p)
+                if argparse_vals_only:
+                    self._usable_via_cmdline_args(p)
 
                 parameters.append(p)
 
@@ -168,7 +170,7 @@ class CDPParser(argparse.ArgumentParser):
                 i += 1
         return StringIO('\n'.join(lines))
 
-    def get_parameters_from_cfg(self, cfg_file, check_values=False):
+    def get_parameters_from_cfg(self, cfg_file, check_values=False, argparse_vals_only=True):
         """
         Given a cfg file, return the parameters from it.
         """
@@ -191,13 +193,14 @@ class CDPParser(argparse.ArgumentParser):
 
             if check_values:
                 p.check_values()
-                self._check_values_with_cmd_args(p)
+            if argparse_vals_only:
+                self._usable_via_cmdline_args(p)
 
             parameters.append(p)
 
         return parameters
 
-    def get_other_parameters(self, files_to_open=[], check_values=False):
+    def get_other_parameters(self, files_to_open=[], check_values=False, argparse_vals_only=True):
         """
         Returns the parameters created by -d. If files_to_open is defined, 
         then use the path specified instead of -d.
@@ -212,9 +215,9 @@ class CDPParser(argparse.ArgumentParser):
         if files_to_open is not None:
             for diags_file in files_to_open:
                 if '.json' in diags_file:
-                    params = self.get_parameters_from_json(diags_file, check_values)
+                    params = self.get_parameters_from_json(diags_file, check_values, argparse_vals_only)
                 elif '.cfg' in diags_file:
-                    params = self.get_parameters_from_cfg(diags_file, check_values)
+                    params = self.get_parameters_from_cfg(diags_file, check_values, argparse_vals_only)
                 else:
                     raise RuntimeError(
                         'The parameters input file must be either a .json or .cfg file')
@@ -241,7 +244,7 @@ class CDPParser(argparse.ArgumentParser):
             if not self._is_arg_default_value(arg_name):
                 setattr(parameters, arg_name, arg_value)
 
-    def get_cmdline_parameters(self, check_values=False):
+    def get_cmdline_parameters(self, check_values=False, argparse_vals_only=True):
         """
         Use the other command line args besides -p and -d to create a single parameters object.
         """
@@ -259,11 +262,12 @@ class CDPParser(argparse.ArgumentParser):
 
         if check_values:
             parameter.check_values()
-            self._check_values_with_cmd_args(parameter)
+        if argparse_vals_only:
+            self._usable_via_cmdline_args(parameter)
 
         return parameter
 
-    def _check_values_with_cmd_args(self, parameter):
+    def _usable_via_cmdline_args(self, parameter):
         """
         Check that all parameters used are able to be
         used by via command line arguments.

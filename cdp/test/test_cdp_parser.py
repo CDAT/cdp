@@ -144,17 +144,17 @@ class TestCDPParser(unittest.TestCase):
 
     def test_get_orig_parameters(self):
         self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_get_orig_parameters.py'])
-        p = self.cdp_parser.get_orig_parameters()
+        p = self.cdp_parser.get_orig_parameters(argparse_vals_only=False)
         self.assertTrue(hasattr(p, 'param1'))
         self.assertEqual(p.param1, 'py_param1')
 
         self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_get_orig_parameters.py', '-v', 'v1', 'v2'])
         # when mixing and matching any two of the three input options(*py, *cfg/*json, cmdline args), 
         # you must use CDPParser.get_parameter() or CDP.get_parameters()
-        p = self.cdp_parser.get_parameter()
+        p = self.cdp_parser.get_parameter(argparse_vals_only=False)
         self.assertTrue(hasattr(p, 'vars'))
         self.assertEqual(p.vars, ['v1', 'v2'])
-        p = self.cdp_parser.get_parameter(default_vars=False)
+        p = self.cdp_parser.get_parameter(default_vars=False, argparse_vals_only=False)
         self.assertEqual(getattr(p, 'param2', None), None)
 
         self.cdp_parser.add_argument(
@@ -164,15 +164,15 @@ class TestCDPParser(unittest.TestCase):
             default='param2_cmd_default',
             required=False)
 
-        p = self.cdp_parser.get_orig_parameters()
+        p = self.cdp_parser.get_orig_parameters(argparse_vals_only=False)
         self.assertEqual(p.param1, 'py_param1')
         self.assertEqual(getattr(p, 'param2', None), None)
 
         self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_get_orig_parameters.py'])
-        p = self.cdp_parser.get_parameter()
+        p = self.cdp_parser.get_parameter(argparse_vals_only=False)
         self.assertEqual(p.param2, 'param2_cmd_default')
         self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_get_orig_parameters.py', '--param2', 'new_param2'])
-        p = self.cdp_parser.get_parameter()
+        p = self.cdp_parser.get_parameter(argparse_vals_only=False)
         self.assertEqual(p.param2, 'new_param2')
 
     def test_get_other_parameters(self):
@@ -192,7 +192,7 @@ class TestCDPParser(unittest.TestCase):
         try:
             self.write_file('test_get_other_parameters.json', json_str)
             self.cdp_parser.add_args_and_values(['-d', 'test_get_other_parameters.json'])
-            p = self.cdp_parser.get_parameters()
+            p = self.cdp_parser.get_parameters(argparse_vals_only=False)
 
             self.assertEqual(len(p), 2)
             self.assertTrue(hasattr(p[0], 'param1'))
@@ -203,7 +203,7 @@ class TestCDPParser(unittest.TestCase):
             self.assertEqual(p[1].param2, 'param2')
 
             self.cdp_parser.add_args_and_values(['-d', 'test_get_other_parameters.json'])
-            p = self.cdp_parser.get_other_parameters()
+            p = self.cdp_parser.get_other_parameters(argparse_vals_only=False)
             self.assertEqual(getattr(p[1], 'param2', None), None)
 
             self.cdp_parser.add_argument(
@@ -214,17 +214,17 @@ class TestCDPParser(unittest.TestCase):
                 required=False)
 
             self.cdp_parser.add_args_and_values(['-d', 'test_get_other_parameters.json'])
-            p = self.cdp_parser.get_other_parameters()
+            p = self.cdp_parser.get_other_parameters(argparse_vals_only=False)
             self.assertEqual(p[1].param1, 'one')
             self.assertEqual(getattr(p[1], 'param2', None), None)
 
             self.cdp_parser.add_args_and_values(['-d', 'test_get_other_parameters.json'])
-            p = self.cdp_parser.get_parameters()
+            p = self.cdp_parser.get_parameters(argparse_vals_only=False)
             self.assertEqual(p[1].param2, 'param2_cmd_default')
             self.cdp_parser.add_args_and_values(['-d', 'test_get_other_parameters.json', '--param2', 'new_param2'])
             # when mixing and matching any two of the three input options(*py, *cfg/*json, cmdline args),
             # you must use CDPParser.get_parameters()
-            p = self.cdp_parser.get_parameters(default_vars=False, cmd_default_vars=True)
+            p = self.cdp_parser.get_parameters(default_vars=False, cmd_default_vars=True, argparse_vals_only=False)
             self.assertEqual(p[1].param2, 'new_param2')
 
         finally:
@@ -299,7 +299,7 @@ class TestCDPParser(unittest.TestCase):
             self.write_file('test_get_other_parameters_with_many_jsons1.json', json_str)
             self.write_file('test_get_other_parameters_with_many_jsons2.json', json_str)
             self.cdp_parser.add_args_and_values(['-d', 'test_get_other_parameters_with_many_jsons1.json', 'test_get_other_parameters_with_many_jsons2.json'])
-            p = self.cdp_parser.get_other_parameters()
+            p = self.cdp_parser.get_other_parameters(argparse_vals_only=False)
 
             self.assertEqual(len(p), 4)
 
@@ -325,7 +325,7 @@ class TestCDPParser(unittest.TestCase):
         try:
             self.write_file('test_get_other_parameters_with_cfg.cfg', cfg_str)
             self.cdp_parser.add_args_and_values(['-d', 'test_get_other_parameters_with_cfg.cfg'])
-            p = self.cdp_parser.get_other_parameters()[0]
+            p = self.cdp_parser.get_other_parameters(argparse_vals_only=False)[0]
 
             self.assertIsInstance(p.num, int)
             self.assertIsInstance(p.str_path1, str)
@@ -366,47 +366,47 @@ class TestCDPParser(unittest.TestCase):
             self.write_file('test_get_parameters.cfg', cfg_str)
                         
             self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_get_parameters.py'])
-            p = self.cdp_parser.get_parameters()[0]
+            p = self.cdp_parser.get_parameters(argparse_vals_only=False)[0]
             self.assertEqual(p.num, 10)
             self.assertEqual(p.other_num, 11)
             self.assertEqual(p.vars, ['v1'])
             
             self.cdp_parser.add_args_and_values(['-d', 'test_get_parameters.cfg'])
-            p = self.cdp_parser.get_parameters()[0]
+            p = self.cdp_parser.get_parameters(argparse_vals_only=False)[0]
             self.assertEqual(p.num, 5)
             self.assertEqual(p.vars, ['v2'])
 
             self.cdp_parser.add_args_and_values(['-v', 'v3'])
-            p = self.cdp_parser.get_parameters()[0]
+            p = self.cdp_parser.get_parameters(argparse_vals_only=False)[0]
             self.assertEqual(p.vars, ['v3'])
 
             # Testing with selectors so those values can be ignored.
             self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_get_parameters.py', '-d', 'test_get_parameters.cfg'])
-            p = self.cdp_parser.get_parameters(default_vars=False, cmd_default_vars=False)[0]
+            p = self.cdp_parser.get_parameters(default_vars=False, cmd_default_vars=False, argparse_vals_only=False)[0]
             self.assertEqual(p.vars, ['v1'])
             self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_get_parameters.py', '-d', 'test_get_parameters.cfg', '--selectors', 'vars'])
-            p = self.cdp_parser.get_parameters(default_vars=False, cmd_default_vars=False)[0]
+            p = self.cdp_parser.get_parameters(default_vars=False, cmd_default_vars=False, argparse_vals_only=False)[0]
             self.assertEqual(p.vars, ['v2'])
 
             self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_get_parameters.py', '-v', 'v3'])
-            p = self.cdp_parser.get_parameters(default_vars=False, cmd_default_vars=False)[0]
+            p = self.cdp_parser.get_parameters(default_vars=False, cmd_default_vars=False, argparse_vals_only=False)[0]
             self.assertEqual(p.vars, ['v3'])
             self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_get_parameters.py', '-v', 'v3', '--selectors', 'vars'])
-            p = self.cdp_parser.get_parameters(default_vars=False, cmd_default_vars=False)[0]
+            p = self.cdp_parser.get_parameters(default_vars=False, cmd_default_vars=False, argparse_vals_only=False)[0]
             self.assertEqual(p.vars, ['v1'])
 
             self.cdp_parser.add_args_and_values(['-d', 'test_get_parameters.cfg', '-v', 'v3'])
-            p = self.cdp_parser.get_parameters(default_vars=False, cmd_default_vars=False)[0]
+            p = self.cdp_parser.get_parameters(default_vars=False, cmd_default_vars=False, argparse_vals_only=False)[0]
             self.assertEqual(p.vars, ['v3'])
             self.cdp_parser.add_args_and_values(['-d', 'test_get_parameters.cfg', '-v', 'v3', '--selectors', 'vars'])
-            p = self.cdp_parser.get_parameters(default_vars=False, cmd_default_vars=False)[0]
+            p = self.cdp_parser.get_parameters(default_vars=False, cmd_default_vars=False, argparse_vals_only=False)[0]
             self.assertEqual(p.vars, ['v2'])
 
             self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_get_parameters.py', '-d', 'test_get_parameters.cfg', '-v', 'v3'])
-            p = self.cdp_parser.get_parameters(default_vars=False, cmd_default_vars=False)[0]
+            p = self.cdp_parser.get_parameters(default_vars=False, cmd_default_vars=False, argparse_vals_only=False)[0]
             self.assertEqual(p.vars, ['v3'])
             self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_get_parameters.py', '-d', 'test_get_parameters.cfg', '-v', 'v3', '--selectors', 'vars'])
-            p = self.cdp_parser.get_parameters(default_vars=False, cmd_default_vars=False)[0]
+            p = self.cdp_parser.get_parameters(default_vars=False, cmd_default_vars=False, argparse_vals_only=False)[0]
             self.assertEqual(p.vars, ['v2'])
 
         finally:
@@ -415,7 +415,7 @@ class TestCDPParser(unittest.TestCase):
 
     def test_get_parameters_with_p_only(self):
         self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_get_parameters_with_p_only.py'])
-        p = self.cdp_parser.get_parameters()[0]
+        p = self.cdp_parser.get_parameters(argparse_vals_only=False)[0]
     
     def test_get_parameters_with_d_only(self):
         json_str = '''
@@ -436,7 +436,7 @@ class TestCDPParser(unittest.TestCase):
         try:
             self.write_file('test_get_parameters_with_d_only.json', json_str)
             self.cdp_parser.add_args_and_values(['-d', 'test_get_parameters_with_d_only.json'])
-            p = self.cdp_parser.get_parameters()
+            p = self.cdp_parser.get_parameters(argparse_vals_only=False)
 
             self.assertEqual(len(p), 2)
 
@@ -468,7 +468,7 @@ class TestCDPParser(unittest.TestCase):
             self.cdp_parser.add_args_and_values(['-p', 'test_get_other_parameters_with_file_paths.py'])
 
             files = ['test_get_other_parameters_with_file_paths1.cfg', 'test_get_other_parameters_with_file_paths2.cfg']
-            params = self.cdp_parser.get_other_parameters(files_to_open=files)
+            params = self.cdp_parser.get_other_parameters(files_to_open=files, argparse_vals_only=False)
             self.assertEqual(len(params), 3)
 
             for p in params:
@@ -545,22 +545,22 @@ class TestCDPParser(unittest.TestCase):
             # self.write_file('test_cmdline_args_with_default_values2.py', py_str2)
 
             self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_cmdline_args_with_default_values.py'])
-            params = self.cdp_parser.get_parameter()
+            params = self.cdp_parser.get_parameter(argparse_vals_only=False)
             self.assertEqual(params.default_val, 'default_val')
             self.assertEqual(params.no_default_val, None)
 
             self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_cmdline_args_with_default_values.py', '--default_val', 'new_default_val'])
-            params = self.cdp_parser.get_parameter()
+            params = self.cdp_parser.get_parameter(argparse_vals_only=False)
             self.assertEqual(params.default_val, 'new_default_val')
             self.assertEqual(params.no_default_val, None)
 
             self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_cmdline_args_with_default_values2.py'])
-            params = self.cdp_parser.get_parameter()
+            params = self.cdp_parser.get_parameter(argparse_vals_only=False)
             self.assertEqual(params.default_val, 'default_val_from_py')
             self.assertEqual(params.no_default_val, None)
 
             self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_cmdline_args_with_default_values2.py', '--default_val', 'new_default_val', '--no_default_val', 'new_no_default_val'])
-            params = self.cdp_parser.get_parameter()
+            params = self.cdp_parser.get_parameter(argparse_vals_only=False)
             self.assertEqual(params.default_val, 'new_default_val')
             self.assertEqual(params.no_default_val, 'new_no_default_val')
 
@@ -622,7 +622,7 @@ class TestCDPParser(unittest.TestCase):
         try:
             self.write_file('test_granulate.cfg', cfg_str)
             self.cdp_parser.add_args_and_values(['-d', 'test_granulate.cfg'])
-            params = self.cdp_parser.get_parameters()
+            params = self.cdp_parser.get_parameters(argparse_vals_only=False)
             
             self.assertEqual(len(params), 6)
             self.assertEqual(getattr(params[0], 'nums'), [0])
@@ -666,7 +666,7 @@ class TestCDPParser(unittest.TestCase):
         try:
             self.write_file('test_cfg_hash.cfg', cfg_str)
             self.cdp_parser.add_args_and_values(['-d', 'test_cfg_hash.cfg'])
-            params = self.cdp_parser.get_parameters()
+            params = self.cdp_parser.get_parameters(argparse_vals_only=False)
             self.assertEqual(len(params), 6)
             self.assertEqual(getattr(params[1], 'num'), 0)
             self.assertEqual(getattr(params[2], 'num'), 0)
@@ -688,7 +688,7 @@ class TestCDPParser(unittest.TestCase):
 
     def test_selector(self):
         self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_selector.py', '-d', self.prefix + 'test_selector.cfg'])
-        params = self.cdp_parser.get_parameters()
+        params = self.cdp_parser.get_parameters(argparse_vals_only=False)
 
         self.assertEqual(len(params), 4)
         self.assertEqual(params[0].variables, ['PRECT'])
