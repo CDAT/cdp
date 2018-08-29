@@ -5,7 +5,7 @@
 		],
 		"default": "'BBBB'",
 		"dest": "modnames",
-		"help": "A list offff names that can be used to loop through modpath",
+		"help": "A list of names that can be used to loop through modpath",
 		"type": "ast.literal_eval"
 	},
     "--store": {

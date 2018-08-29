@@ -45,13 +45,17 @@ class CDPParser(argparse.ArgumentParser):
         return super(CDPParser, self).parse_args(args, namespace)
 
     def view_args(self):
-        """Returns the args namespace"""
+        """"
+        Returns the args namespace.
+        """
         self._parse_arguments()
         return self.__args_namespace
 
     def _was_command_used(self, cmdline_arg):
-        """Returns True if the cmdline_arg was used to
-        run the script that has this parser."""
+        """
+        Returns True if the cmdline_arg was used to
+        run the script that has this parser.
+        """
         # self.cmd_used is like: ['something.py', '-p', 'test.py', '--s1', 'something']
         for cmd in self.cmd_used:
             # Sometimes, a command is run with '=': 'driver.py --something=this'
@@ -65,7 +69,7 @@ class CDPParser(argparse.ArgumentParser):
         Look at the command used for this parser (ex: test.py -s something --s1 something1)
         and if arg wasn't used, then it's a default value.
         """
-        # each cmdline_arg is either '-*' or '--*'.
+        # Each cmdline_arg is either '-*' or '--*'.
         for cmdline_arg in self._option_string_actions:
             if arg == self._option_string_actions[cmdline_arg].dest and self._was_command_used(cmdline_arg):
                 return False
@@ -81,12 +85,16 @@ class CDPParser(argparse.ArgumentParser):
                 setattr(parameters, arg_name, arg_value)
 
     def _parse_arguments(self):
-        """Parse the command line arguments while checking for the user's arguments"""
+        """
+        Parse the command line arguments while checking for the user's arguments.
+        """
         if self.__args_namespace is None:
             self.__args_namespace = self.parse_args()            
 
     def get_orig_parameters(self, check_values=False):
-        """Returns the parameters created by -p. If -p wasn't used, returns None."""
+        """
+        Returns the parameters created by -p. If -p wasn't used, returns None.
+        """
         self._parse_arguments()
         
         if not self.__args_namespace.parameters:
@@ -94,7 +102,7 @@ class CDPParser(argparse.ArgumentParser):
 
         parameter = self.__parameter_cls()
 
-        # remove all of the variables
+        # Remove all of the variables.
         parameter.__dict__.clear()
 
         # if self.__args_namespace.parameters is not None:
@@ -108,7 +116,9 @@ class CDPParser(argparse.ArgumentParser):
         return parameter
 
     def get_parameters_from_json(self, json_file, check_values=False):
-        """Given a json file, return the parameters from it."""
+        """
+        Given a json file, return the parameters from it.
+        """
         with open(json_file) as f:
             json_data = json.loads(f.read())
 
@@ -117,7 +127,7 @@ class CDPParser(argparse.ArgumentParser):
             for single_run in json_data[key]:
                 p = self.__parameter_cls()
 
-                # remove all of the variables
+                # Remove all of the variables.
                 p.__dict__.clear()
 
                 for attr_name in single_run:
@@ -151,7 +161,7 @@ class CDPParser(argparse.ArgumentParser):
                 while i < len(lines) and not lines[i].startswith('['):
                     str_list.append(lines[i])
                     i += 1
-                str_list.append(str(random.random()))  # randomize the hash even more
+                str_list.append(str(random.random()))  # Randomize the hash even more.
                 h_sha256.update(''.join(str_list).encode())
                 lines[replace_idx] = '[{}]'.format(h_sha256.hexdigest())
             else:
@@ -159,18 +169,20 @@ class CDPParser(argparse.ArgumentParser):
         return StringIO('\n'.join(lines))
 
     def get_parameters_from_cfg(self, cfg_file, check_values=False):
-        """Given a cfg file, return the parameters from it."""
+        """
+        Given a cfg file, return the parameters from it.
+        """
         parameters = []
 
         cfg_file_obj = self._create_cfg_hash_titles(cfg_file)
-        kwargs = {'strict': False} if sys.version_info[0] >= 3 else {}  # strict keyword doesn't work in Python 2
-        config = configparser.ConfigParser(**kwargs)  # Allow for two lines to be the same
+        kwargs = {'strict': False} if sys.version_info[0] >= 3 else {}  # 'strict' keyword doesn't work in Python 2.
+        config = configparser.ConfigParser(**kwargs)  # Allow for two lines to be the same.
         config.readfp(cfg_file_obj)
 
         for section in config.sections():
             p = self.__parameter_cls()
 
-            # remove all of the variables
+            # Remove all of the variables.
             p.__dict__.clear()
 
             for k, v in config.items(section):
@@ -186,8 +198,10 @@ class CDPParser(argparse.ArgumentParser):
         return parameters
 
     def get_other_parameters(self, files_to_open=[], check_values=False):
-        """Returns the parameters created by -d, If files_to_open is defined, 
-        then use the path specified instead of -d"""
+        """
+        Returns the parameters created by -d. If files_to_open is defined, 
+        then use the path specified instead of -d.
+        """
         parameters = []
     
         self._parse_arguments()
@@ -212,7 +226,7 @@ class CDPParser(argparse.ArgumentParser):
 
     def _were_cmdline_args_used(self):
         """
-        Checks that other parameters, besides '-p' or '-d', were used 
+        Checks that other parameters, besides '-p' or '-d', were used.
         """
         for cmd in self.cmd_used:
             if cmd.startswith('-') and cmd not in ['-p', '--parameters', '-d', '--diags']:
@@ -238,7 +252,7 @@ class CDPParser(argparse.ArgumentParser):
 
         parameter = self.__parameter_cls()
 
-        # remove all of the variables
+        # Remove all of the variables
         parameter.__dict__.clear()
 
         self._overwrite_parameters_with_cmdline_args(parameter)
@@ -268,53 +282,61 @@ class CDPParser(argparse.ArgumentParser):
         These can come from the default values defined in the Parameter class,
         or the `default` option defined in ArgumentParser.add_argument().
         """
-        # Add the command line default parameters first
+        # Add the command line default parameters first.
         if cmd_default_vars:
             for arg_name, arg_value in vars(self.__args_namespace).items():
-                #print('examining (arg_name, arg_value): ({}, {})'.format(arg_name, arg_value))
                 if arg_name in parameter.__dict__ or not self._is_arg_default_value(arg_name):
                     continue
                 # Only add the default values, that aren't already in parameter.
                 setattr(parameter, arg_name, arg_value)
         
-        # Then add the defaults defined in the Parameter class
+        # Then add the defaults defined in the Parameter class.
         if default_vars:
             for arg_name, arg_value in vars(self.__parameter_cls()).items(): 
                 if arg_name in parameter.__dict__:
                     continue
                 setattr(parameter, arg_name, arg_value)
 
-    def combine_params(self, cmdline_parameters=None, orig_parameters=None, other_parameters=None, vars_to_ignore=[], default_vars=False, cmd_default_vars=False):
+    def combine_params(self, cmdline_parameters=None, orig_parameters=None, other_parameters=None, default_vars=False, cmd_default_vars=False):
         """
         Combine cmdline_params (-* or --*), orig_parameters (-p), and other_parameters (-d),
-        while ignoring vars_to_ignore.
+        while ignoring any parameters listed in the 'selectors' parameter.
         Add any default arguments here as well.
         """
+        # Look for the selectors parameter, first in the command line args,
+        # then in the -p file, then finally in the -d file.
+        # These parameters are the one's we ignore.
+        vars_to_ignore = getattr(cmdline_parameters, 'selectors', [])
+        if not vars_to_ignore:
+            vars_to_ignore = getattr(orig_parameters, 'selectors', [])
+        if not vars_to_ignore:
+            vars_to_ignore = getattr(other_parameters, 'selectors', [])
+
         if other_parameters:
             for parameters in other_parameters:
                 self._add_default_values(parameters, default_vars, cmd_default_vars)
 
-                # orig_parameters args take precedence over other_parameters
+                # orig_parameters args take precedence over other_parameters.
                 if orig_parameters:
                     for var in orig_parameters.__dict__:
                         if var not in vars_to_ignore:
                             parameters.__dict__[var] = orig_parameters.__dict__[var]
 
-                # cmd_line args take the final precedence
+                # cmd_line args take the final precedence.
                 if cmdline_parameters:
                     for var in cmdline_parameters.__dict__:
                         if var not in vars_to_ignore:
                             parameters.__dict__[var] = cmdline_parameters.__dict__[var]
 
         else:
-            # just combine cmdline_params with orig_params
+            # Just combine cmdline_params with orig_params.
             if orig_parameters and cmdline_parameters:
                 self._add_default_values(orig_parameters, default_vars, cmd_default_vars)
 
                 for var in cmdline_parameters.__dict__:
                     # if var not in vars_to_ignore and self._was_command_used(var):
                     if var not in vars_to_ignore:
-                        # Only add it if it was not in param and was passed from cmd line
+                        # Only add it if it was not in param and was passed from cmd line.
                         orig_parameters.__dict__[var] = cmdline_parameters.__dict__[var]
 
             elif orig_parameters:
@@ -322,10 +344,12 @@ class CDPParser(argparse.ArgumentParser):
             elif cmdline_parameters:
                 self._add_default_values(cmdline_parameters, default_vars, cmd_default_vars)
 
-    def combine_orig_and_other_params(self, orig_parameters, other_parameters, vars_to_ignore=[]):
-        """Combine orig_parameters with all of the other_parameters, while ignoring vars_to_ignore"""
+    def combine_orig_and_other_params(self, orig_parameters, other_parameters):
+        """
+        Combine orig_parameters with all of the other_parameters.
+        """
         print('Depreciation warning: please use combine_params() instead')
-        self.combine_params(None, orig_parameters, other_parameters, vars_to_ignore)
+        self.combine_params(None, orig_parameters, other_parameters)
 
     def granulate(self, parameters):
         """
@@ -338,67 +362,105 @@ class CDPParser(argparse.ArgumentParser):
                 final_parameters.append(param)
                 continue
 
-            # granulate param
-            vars_to_granulate = param.granulate  # ex: ['seasons', 'plevs']
-            # check that all of the vars_to_granulate are iterables
-            vals_to_granulate = []  # ex: [['ANN', 'DJF', 'MAM'], [850.0, 250.0]]
+            # Granulate param.
+            vars_to_granulate = param.granulate  # Ex: ['seasons', 'plevs']
+            # Check that all of the vars_to_granulate are iterables.
+            vals_to_granulate = []  # Ex: [['ANN', 'DJF', 'MAM'], [850.0, 250.0]]
             for v in vars_to_granulate:
                 if not hasattr(param, v):
                     raise RuntimeError("Parameters object has no attribute '{}' to granulate.".format(v))
                 param_v = getattr(param, v)
                 if not isinstance(param_v, collections.Iterable):
-                    raise RuntimeError("granulate option '{}' is not an iterable.".format(v))
-                if param_v:  # ignore [] 
+                    raise RuntimeError("Granulate option '{}' is not an iterable.".format(v))
+                if param_v:  # Ignore [].
                     vals_to_granulate.append(param_v)
 
-            # ex: [('ANN', 850.0), ('ANN', 250.0), ('DJF', 850.0), ('DJF', 250.0), ...]
+            # Ex: [('ANN', 850.0), ('ANN', 250.0), ('DJF', 850.0), ('DJF', 250.0), ...]
             granulate_values = list(itertools.product(*vals_to_granulate))
             for g_vals in granulate_values:
                 p = copy.deepcopy(param)
                 for i, g_val in enumerate(g_vals):
-                    # Make sure to insert a list with one element
+                    # Make sure to insert a list with one element.
                     setattr(p, vars_to_granulate[i], [g_val])
                 final_parameters.append(p)
 
         return final_parameters
 
-    def get_parameters(self, cmdline_parameters=None, orig_parameters=None, other_parameters=[], vars_to_ignore=[], default_vars=True, cmd_default_vars=True, *args, **kwargs):
-        """Get the parameters based on the command line arguments and return a list of them."""
+    def select(self, main_parameters, parameters):
+        """
+        Given a list of parameters (parameters), only return those from this list
+        whose 'selector' parameters are a subset of the 'selector' parameters of main_parameters.        
+        """
+        def is_subset(param1, param2):
+            """
+            Check if param1 is a subset of param2.
+            These are any Python objects.
+            """
+            if not isinstance(param1, list):
+                param1 = [param1]
+            if not isinstance(param2, list):
+                param2 = [param2]
+
+            return set(param1).issubset(set(param2))
+
+        if not getattr(main_parameters, 'selectors', []):
+            return parameters
+            
+        final_parameters = []
+        for param in parameters:
+            if all(is_subset(getattr(param, select_parameter),
+                             getattr(main_parameters, select_parameter))
+                   for select_parameter in main_parameters.selectors):
+                       final_parameters.append(param)
+        return final_parameters
+
+    def get_parameters(self, cmdline_parameters=None, orig_parameters=None, other_parameters=[], default_vars=True, cmd_default_vars=True, *args, **kwargs):
+        """
+        Get the parameters based on the command line arguments and return a list of them.
+        """
         if not cmdline_parameters:
             cmdline_parameters = self.get_cmdline_parameters(*args, **kwargs)
         if not orig_parameters:
             orig_parameters = self.get_orig_parameters(*args, **kwargs)
         if other_parameters == []:
             other_parameters = self.get_other_parameters(*args, **kwargs)
-        self.combine_params(cmdline_parameters, orig_parameters, other_parameters, vars_to_ignore, default_vars, cmd_default_vars)
+        self.combine_params(cmdline_parameters, orig_parameters, other_parameters, default_vars, cmd_default_vars)
 
         if other_parameters != []:
-            return self.granulate(other_parameters)
+            final_parameters = other_parameters
         elif orig_parameters:
-            return self.granulate([orig_parameters])
+            final_parameters = [orig_parameters]
         elif cmdline_parameters:
-            return self.granulate([cmdline_parameters])
+            final_parameters = [cmdline_parameters]
 
-        # user didn't give any command line options, so create a parameter from the
+        # User didn't give any command line options, so create a parameter from the
         # defaults of the command line argument or the Parameter class.
         elif cmd_default_vars:
             p = self.__parameter_cls()
             for arg_name, arg_value in vars(self.__args_namespace).items():
                 setattr(p, arg_name, arg_value)
-            return self.granulate([p])
+            final_parameters = [p]
         elif default_vars:
             p = self.__parameter_cls()
-            return self.granulate([p])
+            final_parameters = [p]
+
+        final_parameters = self.granulate(final_parameters)
+
+        return self.select(orig_parameters, final_parameters)
 
     def get_parameter(self, warning=False, *args, **kwargs):
-        """Return the first Parameter in the list of Parameters."""
+        """
+        Return the first Parameter in the list of Parameters.
+        """
         if warning:
             print(
                 'Depreciation warning: Use get_parameters() instead, which returns a list of Parameters.')
         return self.get_parameters(*args, **kwargs)[0]
 
     def load_default_args_from_json(self, files):
-        """Take in a list of json files (or a single json file) and create the args from it."""
+        """
+        Take in a list of json files (or a single json file) and create the args from it.
+        """
         # This is needed for the loading from JSON files,
         # because the type can be ast.literal_eval.
         import ast
@@ -417,10 +479,10 @@ class CDPParser(argparse.ArgumentParser):
                         option_strings = params.pop("aliases", [])
                         option_strings.insert(0, k)
                         # Sometime we can't set a type
-                        # like action="store_true"
+                        # like action="store_true",
                         # setting it to null in json file
-                        # leads to exception in eval
-                        # hence not setting it
+                        # leads to exception in eval,
+                        # hence not setting it.
                         try:
                             params["type"] = eval(params.pop("type", "str"))
                         except:
@@ -464,11 +526,13 @@ class CDPParser(argparse.ArgumentParser):
                 self.add_argument(*opts, **params)
             else:
                 raise RuntimeError(
-                    "could not match {} to any of the default arguments {}".format(
+                    "Could not match {} to any of the default arguments {}".format(
                         option, self.available_defaults))
 
     def load_default_args(self, files=[]):
-        """Load the default arguments for the parser."""
+        """
+        Load the default arguments for the parser.
+        """
         if self.load_default_args_from_json(files):
             return
         self.add_argument(
@@ -504,8 +568,17 @@ class CDPParser(argparse.ArgumentParser):
             dest='granulate',
             help='A list of variables to granulate.',
             required=False)
+        self.add_argument(
+            '--selectors',
+            type=str,
+            nargs='+',
+            dest='selectors',
+            help='A list of variables to be used to select parameters from.',
+            required=False)
 
     def add_args_and_values(self, arg_list):
-        """Used for testing. Can test args input as if they
-        were inputted from the command line."""
+        """
+        Used for testing. Can test args input as if they
+        were inputted from the command line.
+        """
         self.__args_namespace = self.parse_args(arg_list)

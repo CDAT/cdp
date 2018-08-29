@@ -380,33 +380,33 @@ class TestCDPParser(unittest.TestCase):
             p = self.cdp_parser.get_parameters()[0]
             self.assertEqual(p.vars, ['v3'])
 
-            # testing vars_to_ignore
+            # Testing with selectors so those values can be ignored.
             self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_get_parameters.py', '-d', 'test_get_parameters.cfg'])
             p = self.cdp_parser.get_parameters(default_vars=False, cmd_default_vars=False)[0]
             self.assertEqual(p.vars, ['v1'])
-            self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_get_parameters.py', '-d', 'test_get_parameters.cfg'])
-            p = self.cdp_parser.get_parameters(default_vars=False, cmd_default_vars=False, vars_to_ignore=['vars'])[0]
+            self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_get_parameters.py', '-d', 'test_get_parameters.cfg', '--selectors', 'vars'])
+            p = self.cdp_parser.get_parameters(default_vars=False, cmd_default_vars=False)[0]
             self.assertEqual(p.vars, ['v2'])
 
             self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_get_parameters.py', '-v', 'v3'])
             p = self.cdp_parser.get_parameters(default_vars=False, cmd_default_vars=False)[0]
             self.assertEqual(p.vars, ['v3'])
-            self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_get_parameters.py', '-v', 'v3'])
-            p = self.cdp_parser.get_parameters(default_vars=False, cmd_default_vars=False, vars_to_ignore=['vars'])[0]
+            self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_get_parameters.py', '-v', 'v3', '--selectors', 'vars'])
+            p = self.cdp_parser.get_parameters(default_vars=False, cmd_default_vars=False)[0]
             self.assertEqual(p.vars, ['v1'])
 
             self.cdp_parser.add_args_and_values(['-d', 'test_get_parameters.cfg', '-v', 'v3'])
             p = self.cdp_parser.get_parameters(default_vars=False, cmd_default_vars=False)[0]
             self.assertEqual(p.vars, ['v3'])
-            self.cdp_parser.add_args_and_values(['-d', 'test_get_parameters.cfg', '-v', 'v3'])
-            p = self.cdp_parser.get_parameters(default_vars=False, cmd_default_vars=False, vars_to_ignore=['vars'])[0]
+            self.cdp_parser.add_args_and_values(['-d', 'test_get_parameters.cfg', '-v', 'v3', '--selectors', 'vars'])
+            p = self.cdp_parser.get_parameters(default_vars=False, cmd_default_vars=False)[0]
             self.assertEqual(p.vars, ['v2'])
 
             self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_get_parameters.py', '-d', 'test_get_parameters.cfg', '-v', 'v3'])
             p = self.cdp_parser.get_parameters(default_vars=False, cmd_default_vars=False)[0]
             self.assertEqual(p.vars, ['v3'])
-            self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_get_parameters.py', '-d', 'test_get_parameters.cfg', '-v', 'v3'])
-            p = self.cdp_parser.get_parameters(default_vars=False, cmd_default_vars=False, vars_to_ignore=['vars'])[0]
+            self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_get_parameters.py', '-d', 'test_get_parameters.cfg', '-v', 'v3', '--selectors', 'vars'])
+            p = self.cdp_parser.get_parameters(default_vars=False, cmd_default_vars=False)[0]
             self.assertEqual(p.vars, ['v2'])
 
         finally:
@@ -685,6 +685,27 @@ class TestCDPParser(unittest.TestCase):
         
         self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_check_values_with_cmd_args2.py'])
         params = self.cdp_parser.get_parameters(check_values=True)
+
+    def test_selector(self):
+        self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_selector.py', '-d', self.prefix + 'test_selector.cfg'])
+        params = self.cdp_parser.get_parameters()
+
+        self.assertEqual(len(params), 4)
+        self.assertEqual(params[0].variables, ['PRECT'])
+        self.assertEqual(params[0].seasons, ['ANN'])
+        self.assertEqual(params[0].case_id, 'new_run')
+
+        self.assertEqual(params[1].variables, ['PRECT'])
+        self.assertEqual(params[1].seasons, ['SON'])
+        self.assertEqual(params[1].case_id, 'new_run')
+
+        self.assertEqual(params[2].variables, ['TREFHT'])
+        self.assertEqual(params[2].seasons, ['ANN'])
+        self.assertEqual(params[2].case_id, 'new_run')
+
+        self.assertEqual(params[3].variables, ['TREFHT'])
+        self.assertEqual(params[3].seasons, ['SON'])
+        self.assertEqual(params[3].case_id, 'new_run')
 
 
 if __name__ == '__main__':
