@@ -57,7 +57,7 @@ class TestCDPRun(unittest.TestCase):
             self.write_file('diags.cfg', self.cfg_str)
 
             self.cdp_parser.add_args_and_values(['-d', 'diags.cfg'])
-            params = self.cdp_parser.get_parameters()
+            params = self.cdp_parser.get_parameters(argparse_vals_only=False)
 
             cdp.cdp_run.serial(func, params)
 
