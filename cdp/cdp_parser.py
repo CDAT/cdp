@@ -75,6 +75,15 @@ class CDPParser(argparse.ArgumentParser):
                 return False
         return True
 
+    @staticmethod
+    def check_values_of_params(parameters):
+        """
+        Given a list of parameters, call the check_values()
+        function of all of them.
+        """
+        for p in parameters:
+            p.check_values()
+
     def _get_default_from_cmdline(self, parameters):
         """
         Get the default values from the command line and insert it into the parameters object,
