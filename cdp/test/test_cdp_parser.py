@@ -7,6 +7,7 @@ import cdp.cdp_parameter
 import cdp.cdp_parser
 import os
 
+
 class TestCDPParserOverload(unittest.TestCase):
     def setUp(self):
         pth = os.path.join(os.path.dirname(__file__), "json_files")
@@ -106,9 +107,8 @@ class TestCDPParser(unittest.TestCase):
                 required=False)
 
     def write_file(self, file_name, contents):
-        f = open(file_name, 'w')
-        f.write(contents)
-        f.close()
+        with open(file_name, 'w') as f:
+            f.write(contents)
 
     def setUp(self):
         self.cdp_parser = self.MyCDPParser()
@@ -364,7 +364,7 @@ class TestCDPParser(unittest.TestCase):
 
         try:
             self.write_file('test_get_parameters.cfg', cfg_str)
-                        
+
             self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_get_parameters.py'])
             p = self.cdp_parser.get_parameters(argparse_vals_only=False)[0]
             self.assertEqual(p.num, 10)
@@ -385,27 +385,31 @@ class TestCDPParser(unittest.TestCase):
             p = self.cdp_parser.get_parameters(default_vars=False, cmd_default_vars=False, argparse_vals_only=False)[0]
             self.assertEqual(p.vars, ['v1'])
             self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_get_parameters.py', '-d', 'test_get_parameters.cfg', '--selectors', 'vars'])
-            p = self.cdp_parser.get_parameters(default_vars=False, cmd_default_vars=False, argparse_vals_only=False)[0]
-            self.assertEqual(p.vars, ['v2'])
+            p = self.cdp_parser.get_parameters(default_vars=False, cmd_default_vars=False, argparse_vals_only=False)
+            self.assertEqual(p, [])
 
             self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_get_parameters.py', '-v', 'v3'])
             p = self.cdp_parser.get_parameters(default_vars=False, cmd_default_vars=False, argparse_vals_only=False)[0]
             self.assertEqual(p.vars, ['v3'])
-            self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_get_parameters.py', '-v', 'v3', '--selectors', 'vars'])
+
+            self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_get_parameters.py', '--selectors', 'vars'])
             p = self.cdp_parser.get_parameters(default_vars=False, cmd_default_vars=False, argparse_vals_only=False)[0]
+            # Remember, selectors parameter only selects from the cfg (-d) files.
             self.assertEqual(p.vars, ['v1'])
 
             self.cdp_parser.add_args_and_values(['-d', 'test_get_parameters.cfg', '-v', 'v3'])
             p = self.cdp_parser.get_parameters(default_vars=False, cmd_default_vars=False, argparse_vals_only=False)[0]
             self.assertEqual(p.vars, ['v3'])
+
             self.cdp_parser.add_args_and_values(['-d', 'test_get_parameters.cfg', '-v', 'v3', '--selectors', 'vars'])
-            p = self.cdp_parser.get_parameters(default_vars=False, cmd_default_vars=False, argparse_vals_only=False)[0]
-            self.assertEqual(p.vars, ['v2'])
+            p = self.cdp_parser.get_parameters(default_vars=False, cmd_default_vars=False, argparse_vals_only=False)
+            self.assertEqual(p, [])
 
             self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_get_parameters.py', '-d', 'test_get_parameters.cfg', '-v', 'v3'])
             p = self.cdp_parser.get_parameters(default_vars=False, cmd_default_vars=False, argparse_vals_only=False)[0]
             self.assertEqual(p.vars, ['v3'])
-            self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_get_parameters.py', '-d', 'test_get_parameters.cfg', '-v', 'v3', '--selectors', 'vars'])
+
+            self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_get_parameters.py', '-d', 'test_get_parameters.cfg', '-v', 'v2', '--selectors', 'vars'])
             p = self.cdp_parser.get_parameters(default_vars=False, cmd_default_vars=False, argparse_vals_only=False)[0]
             self.assertEqual(p.vars, ['v2'])
 

@@ -280,7 +280,7 @@ class CDPParser(argparse.ArgumentParser):
                 msg += ' because it\'s not defined in the parser.'
                 raise RuntimeError(msg)
 
-    def _add_default_values(self, parameter, default_vars=False, cmd_default_vars=False):
+    def add_default_values(self, parameter, default_vars=False, cmd_default_vars=False):
         """
         Add the default values to the parameter.
         These can come from the default values defined in the Parameter class,
@@ -301,24 +301,36 @@ class CDPParser(argparse.ArgumentParser):
                     continue
                 setattr(parameter, arg_name, arg_value)
 
-    def combine_params(self, cmdline_parameters=None, orig_parameters=None, other_parameters=None, default_vars=False, cmd_default_vars=False):
+    def _get_selectors(self, cmdline_parameters=None, orig_parameters=None, other_parameters=None):
+        """
+        Look through the cmdline_parameters, orig_parameters, and other_parameters
+        in that order for the selectors used.
+        If not defined in any of them, use the default one in the class.
+        """
+        if hasattr(cmdline_parameters, 'selectors') and cmdline_parameters.selectors is not None:
+            return cmdline_parameters.selectors
+        elif hasattr(orig_parameters, 'selectors') and orig_parameters.selectors is not None:
+            return orig_parameters.selectors
+        elif hasattr(other_parameters, 'selectors') and other_parameters.selectors is not None:
+            return other_parameters.selectors
+        else:
+            # If the parameter class has selectors, try to add that in.
+            param = self.__parameter_cls()
+            if hasattr(param, 'selectors'):
+                return param.selectors
+        # None of the passed in parameters have a selector and neither the main_parameter
+        # nor the parameter class has selectors, so return an empty list.
+        return []
+
+    def combine_params(self, cmdline_parameters=None, orig_parameters=None, other_parameters=None, vars_to_ignore=[], default_vars=False, cmd_default_vars=False):
         """
         Combine cmdline_params (-* or --*), orig_parameters (-p), and other_parameters (-d),
         while ignoring any parameters listed in the 'selectors' parameter.
         Add any default arguments here as well.
         """
-        # Look for the selectors parameter, first in the command line args,
-        # then in the -p file, then finally in the -d file.
-        # These parameters are the one's we ignore.
-        vars_to_ignore = getattr(cmdline_parameters, 'selectors', [])
-        if not vars_to_ignore:
-            vars_to_ignore = getattr(orig_parameters, 'selectors', [])
-        if not vars_to_ignore:
-            vars_to_ignore = getattr(other_parameters, 'selectors', [])
-
         if other_parameters:
             for parameters in other_parameters:
-                self._add_default_values(parameters, default_vars, cmd_default_vars)
+                self.add_default_values(parameters, default_vars, cmd_default_vars)
 
                 # orig_parameters args take precedence over other_parameters.
                 if orig_parameters:
@@ -335,7 +347,7 @@ class CDPParser(argparse.ArgumentParser):
         else:
             # Just combine cmdline_params with orig_params.
             if orig_parameters and cmdline_parameters:
-                self._add_default_values(orig_parameters, default_vars, cmd_default_vars)
+                self.add_default_values(orig_parameters, default_vars, cmd_default_vars)
 
                 for var in cmdline_parameters.__dict__:
                     # if var not in vars_to_ignore and self._was_command_used(var):
@@ -344,9 +356,9 @@ class CDPParser(argparse.ArgumentParser):
                         orig_parameters.__dict__[var] = cmdline_parameters.__dict__[var]
 
             elif orig_parameters:
-                self._add_default_values(orig_parameters, default_vars, cmd_default_vars)
+                self.add_default_values(orig_parameters, default_vars, cmd_default_vars)
             elif cmdline_parameters:
-                self._add_default_values(cmdline_parameters, default_vars, cmd_default_vars)
+                self.add_default_values(cmdline_parameters, default_vars, cmd_default_vars)
 
     def combine_orig_and_other_params(self, orig_parameters, other_parameters):
         """
@@ -407,15 +419,20 @@ class CDPParser(argparse.ArgumentParser):
 
             return set(param1).issubset(set(param2))
 
-        if not getattr(main_parameters, 'selectors', []):
+        # Can't select from None.
+        if not main_parameters:
             return parameters
-            
+        
+        selectors = self._get_selectors(None, main_parameters, parameters)
+
         final_parameters = []
+
         for param in parameters:
             if all(is_subset(getattr(param, select_parameter),
                              getattr(main_parameters, select_parameter))
-                   for select_parameter in main_parameters.selectors):
+                   for select_parameter in selectors):
                        final_parameters.append(param)
+
         return final_parameters
 
     def get_parameters(self, cmdline_parameters=None, orig_parameters=None, other_parameters=[], default_vars=True, cmd_default_vars=True, *args, **kwargs):
@@ -428,7 +445,11 @@ class CDPParser(argparse.ArgumentParser):
             orig_parameters = self.get_orig_parameters(*args, **kwargs)
         if other_parameters == []:
             other_parameters = self.get_other_parameters(*args, **kwargs)
-        self.combine_params(cmdline_parameters, orig_parameters, other_parameters, default_vars, cmd_default_vars)
+        
+        # We don't want to add the selectors to each of the parameters.
+        # Because if we do, it'll select all of the parameters at the end during the selection step.
+        vars_to_ignore = self._get_selectors(cmdline_parameters, orig_parameters, other_parameters)
+        self.combine_params(cmdline_parameters, orig_parameters, other_parameters, vars_to_ignore, default_vars, cmd_default_vars)
 
         if other_parameters != []:
             final_parameters = other_parameters
@@ -450,7 +471,17 @@ class CDPParser(argparse.ArgumentParser):
 
         final_parameters = self.granulate(final_parameters)
 
-        return self.select(orig_parameters, final_parameters)
+        # Only select from the -p or the command line options.
+        parameter = self.get_orig_parameters(*args, **kwargs)
+        cmdline_parameter = self.get_cmdline_parameters(*args, **kwargs)
+
+        # Command line parameters are added to parameter.
+        # default_vars must be True, b/c the user excepts to select from them.
+        self.combine_params(cmdline_parameter, parameter, default_vars=True)
+        # Sometimes, one of these can be None, so get the one that's None.
+        parameter = parameter if parameter else cmdline_parameter
+
+        return self.select(parameter, final_parameters)
 
     def get_parameter(self, warning=False, *args, **kwargs):
         """
