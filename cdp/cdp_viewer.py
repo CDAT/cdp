@@ -90,7 +90,6 @@ class OutputViewer(object):
                 default_mask=default_mask)
 
         if os.path.exists(os.path.join(self.path, "index.html")):
-            print("Viewer HTML generated at {path}/index.html".format(path=self.path))
             if prompt_user:
                 user_prompt = "Would you like to open in a browser? y/[n]: "
                 should_open = input(user_prompt)
