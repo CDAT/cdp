@@ -22,7 +22,7 @@ script:
   - conda update -q conda
   - conda config --set anaconda_upload no
 
-  - conda install python=$TRAVIS_PYTHON_VERSION output_viewer pyyaml dask distributed six nose -c conda-forge -c uvcdat -y
+  - conda install python=$TRAVIS_PYTHON_VERSION output_viewer pyyaml dask distributed six nose -c conda-forge -c cdat -y
 
   - find cdp/test/test_*.py -exec python {} \;
 
