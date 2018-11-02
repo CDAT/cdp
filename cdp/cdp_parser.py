@@ -282,10 +282,12 @@ class CDPParser(argparse.ArgumentParser):
         usable by via command line arguments.
         """
         acceptable_args = vars(self.view_args())
+        current_args = vars(parameter)
 
-        for arg_name in vars(parameter):
-            if arg_name not in acceptable_args:
-                delattr(parameter, arg_name)
+        params_to_del = [a for a in current_args if a not in acceptable_args]
+
+        for param in params_to_del:
+            delattr(parameter, param)
 
     def add_default_values(self, parameter, default_vars=False, cmd_default_vars=False):
         """
