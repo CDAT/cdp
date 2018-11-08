@@ -121,7 +121,7 @@ class CDPParser(argparse.ArgumentParser):
         if check_values:
             parameter.check_values()
         if argparse_vals_only:
-            self._usable_via_cmdline_args(parameter)
+            self._only_cmdline_args(parameter)
 
         return parameter
 
@@ -146,7 +146,7 @@ class CDPParser(argparse.ArgumentParser):
                 if check_values:
                     p.check_values()
                 if argparse_vals_only:
-                    self._usable_via_cmdline_args(p)
+                    self._only_cmdline_args(p)
 
                 parameters.append(p)
 
@@ -203,7 +203,7 @@ class CDPParser(argparse.ArgumentParser):
             if check_values:
                 p.check_values()
             if argparse_vals_only:
-                self._usable_via_cmdline_args(p)
+                self._only_cmdline_args(p)
 
             parameters.append(p)
 
@@ -272,22 +272,22 @@ class CDPParser(argparse.ArgumentParser):
         if check_values:
             parameter.check_values()
         if argparse_vals_only:
-            self._usable_via_cmdline_args(parameter)
+            self._only_cmdline_args(parameter)
 
         return parameter
 
-    def _usable_via_cmdline_args(self, parameter):
+    def _only_cmdline_args(self, parameter):
         """
-        Check that all parameters used are able to be
-        used by via command line arguments.
+        Remove all parameters except those that are
+        usable by via command line arguments.
         """
         acceptable_args = vars(self.view_args())
+        current_args = vars(parameter)
 
-        for arg_name in vars(parameter):
-            if arg_name not in acceptable_args:
-                msg = '{} is not a valid parameter'.format(arg_name)
-                msg += ' because it\'s not defined in the parser.'
-                raise RuntimeError(msg)
+        params_to_del = [a for a in current_args if a not in acceptable_args]
+
+        for param in params_to_del:
+            delattr(parameter, param)
 
     def add_default_values(self, parameter, default_vars=False, cmd_default_vars=False):
         """

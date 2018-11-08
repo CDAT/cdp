@@ -683,13 +683,6 @@ class TestCDPParser(unittest.TestCase):
             if os.path.exists('test_cfg_hash.cfg'):
                 os.remove('test_cfg_hash.cfg')
 
-    def test_check_values_with_cmd_args(self):
-        self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_check_values_with_cmd_args.py'])
-        self.assertRaises(RuntimeError, self.cdp_parser.get_parameters, check_values=True)
-        
-        self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_check_values_with_cmd_args2.py'])
-        params = self.cdp_parser.get_parameters(check_values=True)
-
     def test_selector(self):
         self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_selector.py', '-d', self.prefix + 'test_selector.cfg'])
         params = self.cdp_parser.get_parameters(argparse_vals_only=False)
@@ -710,6 +703,13 @@ class TestCDPParser(unittest.TestCase):
         self.assertEqual(params[3].variables, ['TREFHT'])
         self.assertEqual(params[3].seasons, ['SON'])
         self.assertEqual(params[3].case_id, 'new_run')
+
+    def test_argparse_vals_only(self):
+        self.cdp_parser.add_args_and_values(['-p', self.prefix + 'test_argparse_vals_only.py'])
+        params = self.cdp_parser.get_parameters(argparse_vals_only=True)
+
+        self.assertTrue(hasattr(params[0], 'vars'))
+        self.assertFalse(hasattr(params[0], 'some_other_param'))
 
 
 if __name__ == '__main__':
