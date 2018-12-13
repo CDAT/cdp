@@ -10,6 +10,7 @@ import collections
 import copy
 import random
 import hashlib
+import types
 
 if sys.version_info[0] >= 3:
     import configparser
@@ -386,6 +387,13 @@ class CDPParser(argparse.ArgumentParser):
             if not hasattr(param, 'granulate') or (hasattr(param, 'granulate') and not param.granulate):
                 final_parameters.append(param)
                 continue
+
+            # Remove any attrs that are modules from the param object.
+            # These cause an error when copy.deepcopy(param) is used.
+            attrs = vars(param).items()
+            for var_name, var_value in attrs:
+                if isinstance(var_value, types.ModuleType):
+                    delattr(param, var_name)
 
             # Granulate param.
             vars_to_granulate = param.granulate  # Ex: ['seasons', 'plevs']
