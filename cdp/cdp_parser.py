@@ -451,6 +451,43 @@ class CDPParser(argparse.ArgumentParser):
                        final_parameters.append(param)
 
         return final_parameters
+    
+
+    def _get_alias(self, param):
+        """
+        For a single parameter, get the aliases of it.
+        """
+        # Parameters can start with either '-' or '--'.
+        param = '--{}'.format(param)
+        if param not in self._option_string_actions:
+            param = '-{}'.format(param)
+        if param not in self._option_string_actions:
+            return []
+
+        # Ex: If param is 'parameters', then we get ['-p', '--parameters'].
+        aliases = self._option_string_actions[param].option_strings
+
+        return [a.replace('-', '') for a in aliases]
+
+    def add_aliases(self, parameters):
+        """
+        For each of the parameters, add all of
+        the defined aliases as other attributes.
+        """
+        for param in parameters:
+            # We need to set this info as a variable.
+            # Can't do:
+            #    for param_name in vars(param)
+            # because we're modifying param as we iterate.
+            # We also need to make a copy because dicts are referenced.
+            param_names = copy.copy(vars(param))
+
+            for param_name in param_names:
+                param_value = getattr(param, param_name)
+                aliases = self._get_alias(param_name)
+                # Add all of the aliases for param_name to the param object.
+                for alias in aliases:
+                    setattr(param, alias, param_value)
 
     def get_parameters(self, cmdline_parameters=None, orig_parameters=None, other_parameters=[], default_vars=True, cmd_default_vars=True, *args, **kwargs):
         """
@@ -498,7 +535,10 @@ class CDPParser(argparse.ArgumentParser):
         # Sometimes, one of these can be None, so get the one that's None.
         parameter = parameter if parameter else cmdline_parameter
 
-        return self.select(parameter, final_parameters)
+        final_parameters = self.select(parameter, final_parameters)
+        self.add_aliases(final_parameters)
+
+        return final_parameters
 
     def get_parameter(self, warning=False, *args, **kwargs):
         """
