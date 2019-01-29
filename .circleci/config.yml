@@ -67,7 +67,7 @@ aliases:
        cd conda-recipes
        export PKG_NAME=cdp
        export USER=cdat
-       export VERSION=1.4.1
+       export VERSION=1.4.2
        export LABEL=nightly
        export DATE=`date +%Y.%m.%d.%H.%M`
        ln -s ../conda cdp
