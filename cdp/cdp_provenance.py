@@ -112,18 +112,9 @@ def save_parameter_as_py(param, file_name, parser):
         else:
             line = '{} = {}'
         py_contents.append(line.format(var_name, var_value))
-
-    '''
-    for l in py_contents:
-        if not l.endswith('\n'):
-            l += '\n'
-        print(l, end='')
-    '''
     
     with open(file_name, 'w') as f:
         for l in py_contents:
             if not l.endswith('\n'):
                 l += '\n'
             f.write(l)
-    
-    # return py_contents

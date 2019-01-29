@@ -1,0 +1,9 @@
+{
+	"--arg": {
+		"aliases": [
+			"--another_arg"
+		],
+		"dest": "arg",
+		"help": "A set of sample arguments"
+	}
+}

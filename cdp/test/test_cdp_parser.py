@@ -711,6 +711,18 @@ class TestCDPParser(unittest.TestCase):
         self.assertTrue(hasattr(params[0], 'vars'))
         self.assertFalse(hasattr(params[0], 'some_other_param'))
 
+    def test_aliases(self):
+        pth = os.path.join(os.path.dirname(__file__), "json_files")
+        parser = cdp.cdp_parser.CDPParser(None, [os.path.join(pth, "DefArgsCIA.json"),
+                                            os.path.join(pth, "test_aliases.json")])
+        parser.use("parameters")
+        parser.use("diags")
+        parser.use("arg")
+
+        parser.add_args_and_values(['-p', self.prefix + 'test_aliases.py'])
+
+        params = parser.get_parameter()
+        self.assertEqual(params.arg, params.another_arg)
 
 if __name__ == '__main__':
     unittest.main()
