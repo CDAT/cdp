@@ -1,30 +1,46 @@
-about:
-  home: https://github.com/CDAT/cdp
-  summary: The Community Diagnostics Package (CDP) is a framework for developing new climate diagnostics. CDP allows for a modular implementation of the components required for running diagnostics. The design of CDP consists of modules to handle the user-defined parameters, metrics, provenance, file I/O, output of results and algorithms for calculating the diagnostics.
-
+{% set name = "cdp" %}
+{% set version = "1.4.2" %}
 package:
-  name: cdp
-  version: {{ environ['VERSION'] }}
+  name: {{ name }}
+  version: {{ version }}
 
 source:
-  git_url: https://github.com/CDAT/cdp.git
+  url: https://github.com/CDAT/cdp/archive/v{{ version }}.tar.gz
+  sha256: 2e511a9cc0030868c004746abfd6a0d287dd1c6cf037ab20ff3e67e69224e5a6
 
 build:
     number: 0
     noarch: python
-    script: python setup.py install
-    script_env:
-     - VERSION
-     - CONDA_BLD_PATH
+    script: "{{ PYTHON }} -m pip install . --no-deps --ignore-installed --no-cache-dir -vvv"
+    entry_points:
+      - cdp-distrib = cdp.cli.cdp_distrib:main
 
 requirements:
-  build:
+  host:
     - python {{ python }}
     - setuptools
+    - pip
   run:
     - python {{ python }}
-    - output_viewer >=1.2.4
+    - output_viewer
     - pyyaml
     - dask
     - distributed
     - six
+
+test:
+  imports:
+      - cdp
+  commands:
+      - cdp-distrib -h
+
+about:
+  home: https://github.com/cdat/cdp
+  summary: The Community Diagnostics Package (CDP) is a framework for developing new climate diagnostics. CDP allows for a modular implementation of the components required for running diagnostics. The design of CDP consists of modules to handle the user-defined parameters, metrics, provenance, file I/O, output of results and algorithms for calculating the diagnostics.
+  license: BSD-3-Clause
+  license_file: bsd-3-clause.txt
+
+extra:
+    recipe-maintainers:
+        - doutriaux1
+        - zshaheen
