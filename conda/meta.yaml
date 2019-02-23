@@ -22,7 +22,7 @@ requirements:
     - pip
   run:
     - python {{ python }}
-    - output_viewer
+    - output_viewer >=1.2.4
     - pyyaml
     - dask
     - distributed
