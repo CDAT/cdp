@@ -16,19 +16,19 @@ class OutputViewer(object):
         self.group = None
         self.row = None
 
-    def add_page(self, page_name, cols):
+    def add_page(self, page_title, *args, **kwargs):
         """Add a page to the viewer's index"""
-        self.page = OutputPage(page_name, cols)
+        self.page = OutputPage(page_title, *args, **kwargs)
         self.cache[self.page] = {}
         self.index.addPage(self.page)
 
-    def set_page(self, page_name):
+    def set_page(self, page_title):
         """Sets the page with the title name as the current page"""
         for output_page in self.cache:
-            if page_name == output_page.title:
+            if page_title == output_page.title:
                 self.page = output_page
                 return
-        raise RuntimeError('There is no page titled: %s' % page_name)
+        raise RuntimeError('There is no page titled: %s' % page_title)
 
     def add_group(self, group_name):
         """Add a group to the current page"""
