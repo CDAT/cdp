@@ -2,7 +2,7 @@ from __future__ import print_function
 
 import os
 import stat
-from output_viewer.build import build_viewer
+from output_viewer.build import build_viewer, build_page
 from output_viewer.utils import rechmod
 from output_viewer.index import OutputIndex, OutputPage, OutputFile, OutputGroup, OutputRow
 
@@ -74,6 +74,23 @@ class OutputViewer(object):
             self.row.columns.append(OutputFile(col, **kwargs))
         else:
             self.row.columns.append(col)
+
+    def generate_page(self):
+        """
+        Generate and return the location of the current HTML page.
+        """
+        self.index.toJSON(os.path.join(self.path, "index.json"))
+
+        default_mask = stat.S_IMODE(os.stat(self.path).st_mode)
+        rechmod(self.path, default_mask)
+
+        if os.access(self.path, os.W_OK):
+            default_mask = stat.S_IMODE(os.stat(self.path).st_mode)  # mode of files to be included
+            url = build_page(self.page, os.path.join(self.path, "index.json"),
+                default_mask=default_mask)
+            return url
+        
+        raise RuntimeError('Error geneating the page.')
 
     def generate_viewer(self, prompt_user=True):
         """Generate the webpage and ask the user if they want to see it."""
