@@ -4,7 +4,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="cdp",
-    version="1.4.2",
+    version="1.5.0",
     author="Zeshawn Shaheen, Charles Doutriaux",
     author_email="shaheen2@llnl.gov, doutriaux1@llnl.gov",
     description="Framework for creating scientific diagnostics.",
