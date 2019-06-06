@@ -391,9 +391,12 @@ class CDPParser(argparse.ArgumentParser):
             # Remove any attrs that are modules from the param object.
             # These cause an error when copy.deepcopy(param) is used.
             attrs = vars(param).items()
+            modules_in_param = []
             for var_name, var_value in attrs:
                 if isinstance(var_value, types.ModuleType):
-                    delattr(param, var_name)
+                    modules_in_param.append(var_name)
+            for module in modules_in_param:
+                delattr(param, module)
 
             # Granulate param.
             vars_to_granulate = param.granulate  # Ex: ['seasons', 'plevs']
