@@ -4,17 +4,41 @@ import abc
 import importlib
 import sys
 import os
+import copy
+import types
 from six import with_metaclass
 
 
 class CDPParameter(object):
+    def __add__(self, other):
+        """
+        Deepcopy any attribute of `other` into self.
+        """
+        # First make a deepcopy of the current object.
+        duplicate = copy.deepcopy(self)
+        
+        for attr in dir(other):
+            # Ignore any of the hidden attributes.
+            if attr.startswith('_') or \
+                isinstance(getattr(other, attr), types.MethodType):
+                continue
+
+            val = copy.deepcopy(getattr(other, attr))
+            setattr(duplicate, attr, val)
+        
+        return duplicate
+
     def check_values(self):
-        """Check that all of the variables in
-        this parameter file are valid."""
+        """
+        Check that all of the variables in
+        this parameter file are valid.
+        """
         pass
 
     def load_parameter_from_py(self, parameter_file_path):
-        """Initialize a parameter object from a Python script."""
+        """
+        Initialize a parameter object from a Python script.
+        """
         parameter_as_module = \
             self.import_user_parameter_file_as_module(parameter_file_path)
         self.load_parameters_from_module(parameter_as_module)
