@@ -401,7 +401,8 @@ class CDPParser(argparse.ArgumentParser):
             # Granulate param.
             vars_to_granulate = param.granulate  # Ex: ['seasons', 'plevs']
             # Check that all of the vars_to_granulate are iterables.
-            vals_to_granulate = []  # Ex: [['ANN', 'DJF', 'MAM'], [850.0, 250.0]]
+            # Ex: {'season': ['ANN', 'DJF', 'MAM'], 'plevs': [850.0, 250.0]}
+            vals_to_granulate = collections.OrderedDict()
             for v in vars_to_granulate:
                 if not hasattr(param, v):
                     raise RuntimeError("Parameters object has no attribute '{}' to granulate.".format(v))
@@ -409,15 +410,17 @@ class CDPParser(argparse.ArgumentParser):
                 if not isinstance(param_v, collections.Iterable):
                     raise RuntimeError("Granulate option '{}' is not an iterable.".format(v))
                 if param_v:  # Ignore [].
-                    vals_to_granulate.append(param_v)
+                    vals_to_granulate[v] = param_v
 
             # Ex: [('ANN', 850.0), ('ANN', 250.0), ('DJF', 850.0), ('DJF', 250.0), ...]
-            granulate_values = list(itertools.product(*vals_to_granulate))
+            granulate_values = list(itertools.product(*vals_to_granulate.values()))
             for g_vals in granulate_values:
                 p = copy.deepcopy(param)
                 for i, g_val in enumerate(g_vals):
-                    # Make sure to insert a list with one element.
-                    setattr(p, vars_to_granulate[i], [g_val])
+                    key_at_index_i = list(vals_to_granulate.keys())[i]
+                    # Make sure to insert a list with one element,
+                    # which is why we have [g_val].
+                    setattr(p, key_at_index_i, [g_val])
                 final_parameters.append(p)
 
         return final_parameters
