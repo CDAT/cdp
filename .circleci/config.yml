@@ -1,113 +1,460 @@
 version: 2
 
-checkout:
-  post:
-    - ./ci-support/checkout_merge_commit.sh
-        
 aliases:
-
   - &setup_miniconda
     name: setup_miniconda
     command: |
-      mkdir -p workspace
-      git clone -b validateNightly git@github.com:CDAT/cdat workspace/cdat
-      python workspace/cdat/scripts/install_miniconda.py -w $WORKDIR -p 'py3'
-      
-  - &create_conda_env
-    name: create_conda_env
+       mkdir -p workspace
+       git clone -b validateNightlyNew git@github.com:CDAT/cdat workspace/cdat
+       # install_miniconda.py installs miniconda3 under $WORKDIR/miniconda
+       python workspace/cdat/scripts/install_miniconda.py -w $WORKDIR -p 'py3'
+
+  - &conda_rerender
+    name: conda_rerender
     command: |
-       export PATH=$WORKDIR/miniconda/bin:$PATH
-       conda config --set always_yes yes --set changeps1 no
-       conda update -y -q conda
+       git clone https://github.com/CDAT/conda-recipes.git $WORKDIR/conda-recipes 
+       source $WORKDIR/miniconda/etc/profile.d/conda.sh
+       conda activate base
        conda config --set anaconda_upload no
-       conda create -n py2 python=2.7 output_viewer pyyaml dask distributed six nose -c conda-forge -c cdat -y
-       conda create -n py3 python=3.6 output_viewer pyyaml dask distributed six nose -c conda-forge -c cdat -y
+       BUILD_SCRIPT="$WORKDIR/conda-recipes/build_tools/conda_build.py"
+       python $BUILD_SCRIPT -w $WORKDIR -l $LAST_STABLE -B 0 -p $PKG_NAME -b $CIRCLE_BRANCH --do_rerender
 
-  - &setup_cdp
-    name: setup_cdp
+  - &conda_build
+    name: conda_build
     command: |
-       export PATH=$WORKDIR/miniconda/bin:$PATH
-       export UVCDAT_ANONYMOUS_LOG=False
-       source activate py3
-       python setup.py install
-       source activate py2
-       rm -rf build
-       python setup.py install
+       source $WORKDIR/miniconda/etc/profile.d/conda.sh
+       conda activate base
+       conda config --add channels conda-forge --force
+       conda config --add channels cdat/label/nightly --force
+       conda config --set channel_priority strict
+       BUILD_SCRIPT="$WORKDIR/conda-recipes/build_tools/conda_build.py"
+       python $BUILD_SCRIPT -w $WORKDIR -p $PKG_NAME --build_version $BUILD_VARIANT_VER --do_build
 
-  - &run_cdp_tests
-    name: run_cdp_tests
+  - &setup_run_tests
+    name: setup_run_tests
+    environment:
+       PKGS: "output_viewer pyyaml dask distributed six nose"
+       CHANNELS: "-c cdat/label/nightly -c conda-forge"
     command: |
-       export PATH=$WORKDIR/miniconda/bin:$PATH
-       export UVCDAT_ANONYMOUS_LOG=False
-       set -e
-       source activate py2
-       #nosetests cdp/test/test_*.py
+       source $WORKDIR/miniconda/etc/profile.d/conda.sh
+       conda activate base
+       echo "conda create -y -n $ENV_NAME --use-local $CHANNELS \"$CONDA_PY_VER\" $PKG_NAME $PKGS"
+       conda create -y -n $ENV_NAME --use-local $CHANNELS "$CONDA_PY_VER" $PKG_NAME $PKGS
+       conda activate $ENV_NAME
+       conda config --set always_yes yes
+       conda list
+      
+  - &run_tests
+    name: run_tests
+    command: |
+       source $WORKDIR/miniconda/etc/profile.d/conda.sh
+       conda activate $ENV_NAME
        find cdp/test/test_*.py -exec python {} \;
        RESULT=$?
-       echo "**** py2 test result: "${RESULT}
-       source activate py3
-       #nosetests cdp/test/test_*.py
-       find cdp/test/test_*.py -exec python {} \;
-       PY3_RESULT=$?
-       echo "**** py3 test result: "${PY3_RESULT}
-       RESULT=$(( $RESULT + $PY3_RESULT))
+       conda deactivate
        exit $RESULT
 
   - &conda_upload
     name: conda_upload
     command: |
-       if [[ $CIRCLE_BRANCH != 'master' ]]; then
-          exit 0
-       fi
-       export PATH=${HOME}/project/$WORKDIR/miniconda/bin:$PATH
-       conda install conda-build anaconda-client
-       conda config --set anaconda_upload no
-       export CONDA_BLD_PATH=`pwd`/conda_build
-       git clone git://github.com/cdat/conda-recipes
-       cd conda-recipes
-       export PKG_NAME=cdp
-       export USER=cdat
-       export VERSION=1.4.2
-       export LABEL=nightly
-       export DATE=`date +%Y.%m.%d.%H.%M`
-       ln -s ../conda cdp
-       python ./prep_for_build.py -v $VERSION.$DATE
-       conda build $PKG_NAME -c cdat/label/nightly -c conda-forge -c cdat --python=3.6
-       anaconda -t $CONDA_UPLOAD_TOKEN upload -u $USER -l $LABEL $CONDA_BLD_PATH/noarch/$PKG_NAME-$VERSION.`date +%Y*`0.tar.bz2 --force
+       #if [[ $CIRCLE_BRANCH != "master" ]]; then
+       #   exit 0
+       #fi
+       source $WORKDIR/miniconda/etc/profile.d/conda.sh
+       conda activate base
+       UPLOAD_OPTIONS="-t $CONDA_UPLOAD_TOKEN upload -u $USER -l $LABEL"
+       anaconda $UPLOAD_OPTIONS $WORKDIR/miniconda/conda-bld/noarch/$PKG_NAME-$VERSION.`date +%Y*`0.tar.bz2 --force
 
 jobs:
-  macos_cdp:
-    macos:
-      xcode: "9.2.0"
-    environment:
-      WORKDIR: "workspace/test_macos_cdp"
-      OS: "osx-64"
-    steps:
-      - checkout
-      - run: *setup_miniconda
-      - run: *create_conda_env
-      - run: *setup_cdp
-      - run: *run_cdp_tests
+   macos_setup:
+      macos:
+         xcode: "11.4.0"
+      environment:
+         WORKDIR: /Users/distiller/project/macos_build
+         PKG_NAME: "cdp"
+         REPO_NAME: "cdp"
+         LAST_STABLE: "1.6.0"
+         BUILD_VARIANT_VER: "noarch"
+      steps:
+         - checkout
+         - run: *setup_miniconda
+         - run: *conda_rerender
+         - run: *conda_build
+         - persist_to_workspace:
+              root: .
+              paths: 
+                 - macos_build
 
-  linux_cdp:
-    machine:
-      image: circleci/classic:latest
-    environment:
-      WORKDIR: "workspace/test_linux_cdp"
-      OS: "linux-64"
-    steps:
-      - checkout
-      - run: *setup_miniconda
-      - run: *create_conda_env
-      - run: *setup_cdp
-      - run: *run_cdp_tests
-      - run: *conda_upload
+   linux_setup:
+      machine:
+         image: circleci/classic:latest
+      environment:
+         WORKDIR: /home/circleci/project/linux_build
+         PKG_NAME: "cdp"
+         REPO_NAME: "cdp"
+         LAST_STABLE: "1.6.0"
+         BUILD_VARIANT_VER: "noarch"
+      steps:
+         - checkout
+         - run: *setup_miniconda
+         - run: *conda_rerender
+         - run: *conda_build
+         - persist_to_workspace:
+              root: .
+              paths:
+                 - linux_build
+
+   #
+   # run tests with libnetcdf nompi
+   #
+   macos_cdp_nompi_py36:
+      macos:
+         xcode: "11.4.0"
+      environment:
+         WORKDIR: /Users/distiller/project/macos_build
+         PKG_NAME: "cdp"
+         ENV_NAME: "test_cdp"
+         CONDA_PY_VER: "python>=3.6,<3.7"
+         LIBNETCDF: "libnetcdf=*=nompi_*"
+      steps:
+         - checkout
+         - attach_workspace:
+              at: .
+         - run: *setup_run_tests
+         - run: *run_tests
+         - store_artifacts:
+              path: tests_html
+              destination: tests_html
+         - store_artifacts:
+             path: tests_png
+             destination: tests_png
+
+   macos_cdp_nompi_py37:
+      macos:
+         xcode: "11.4.0"
+      environment:
+         WORKDIR: /Users/distiller/project/macos_build
+         PKG_NAME: "cdp"
+         ENV_NAME: "test_cdp"
+         CONDA_PY_VER: "python>=3.7,<3.8"
+         LIBNETCDF: "libnetcdf=*=nompi_*"
+      steps:
+         - checkout
+         - attach_workspace:
+              at: .
+         - run: *setup_run_tests
+         - run: *run_tests
+         - store_artifacts:
+              path: tests_html
+              destination: tests_html
+         - store_artifacts:
+             path: tests_png
+             destination: tests_png
+
+   macos_cdp_nompi_py38:
+      macos:
+         xcode: "11.4.0"
+      environment:
+         WORKDIR: /Users/distiller/project/macos_build
+         PKG_NAME: "cdp"
+         ENV_NAME: "test_cdp"
+         CONDA_PY_VER: "python>=3.8,<3.9"
+         LIBNETCDF: "libnetcdf=*=nompi_*"
+      steps:
+         - checkout
+         - attach_workspace:
+              at: .
+         - run: *setup_run_tests
+         - run: *run_tests
+         - store_artifacts:
+              path: tests_html
+              destination: tests_html
+         - store_artifacts:
+             path: tests_png
+             destination: tests_png
+
+   linux_cdp_nompi_py36:
+      machine:
+         image: circleci/classic:latest
+      environment:
+         WORKDIR: /home/circleci/project/linux_build
+         PKG_NAME: "cdp"
+         ENV_NAME: "test_cdp"
+         CONDA_PY_VER: "python>=3.6,<3.7"
+         LIBNETCDF: "libnetcdf=*=nompi_*"
+      steps:
+         - checkout
+         - attach_workspace:
+              at: .
+         - run: *setup_run_tests
+         - run: *conda_env_export
+         - run: *run_tests
+         - store_artifacts:
+              path: tests_html
+              destination: tests_html
+         - store_artifacts:
+             path: tests_png
+             destination: tests_png
+
+   linux_cdp_nompi_py37:
+      machine:
+         image: circleci/classic:latest
+      environment:
+         WORKDIR: /home/circleci/project/linux_build
+         PKG_NAME: "cdp"
+         ENV_NAME: "test_cdp"
+         CONDA_PY_VER: "python>=3.7,<3.8"
+         LIBNETCDF: "libnetcdf=*=nompi_*"
+      steps:
+         - checkout
+         - attach_workspace:
+              at: .
+         - run: *setup_run_tests
+         - run: *conda_env_export
+         - run: *run_tests
+         - store_artifacts:
+              path: tests_html
+              destination: tests_html
+         - store_artifacts:
+             path: tests_png
+             destination: tests_png
+
+   linux_cdp_nompi_py38:
+      machine:
+         image: circleci/classic:latest
+      environment:
+         WORKDIR: /home/circleci/project/linux_build
+         PKG_NAME: "cdp"
+         ENV_NAME: "test_cdp"
+         CONDA_PY_VER: "python>=3.8,<3.9"
+         LIBNETCDF: "libnetcdf=*=nompi_*"
+      steps:
+         - checkout
+         - attach_workspace:
+              at: .
+         - run: *setup_run_tests
+         - run: *conda_env_export
+         - run: *run_tests
+         - store_artifacts:
+              path: tests_html
+              destination: tests_html
+         - store_artifacts:
+             path: tests_png
+             destination: tests_png
+
+   #
+   # run tests with libnetcdf mpich
+   #
+   macos_cdp_mpich_py36:
+      macos:
+         xcode: "11.4.0"
+      environment:
+         WORKDIR: /Users/distiller/project/macos_build
+         PKG_NAME: "cdp"
+         ENV_NAME: "test_cdp"
+         CONDA_PY_VER: "python>=3.6,<3.7"
+         LIBNETCDF: "libnetcdf=*=mpi_mpich_*"
+      steps:
+         - checkout
+         - attach_workspace:
+              at: .
+         - run: *setup_run_tests
+         - run: *conda_env_export
+         - run: *run_tests
+         - store_artifacts:
+              path: tests_html
+              destination: tests_html
+         - store_artifacts:
+             path: tests_png
+             destination: tests_png
+
+   macos_cdp_mpich_py37:
+      macos:
+         xcode: "11.4.0"
+      environment:
+         WORKDIR: /Users/distiller/project/macos_build
+         PKG_NAME: "cdp"
+         ENV_NAME: "test_cdp"
+         CONDA_PY_VER: "python>=3.7,<3.8"
+         LIBNETCDF: "libnetcdf=*=mpi_mpich_*"
+      steps:
+         - checkout
+         - attach_workspace:
+              at: .
+         - run: *setup_run_tests
+         - run: *conda_env_export
+         - run: *run_tests
+         - store_artifacts:
+              path: tests_html
+              destination: tests_html
+         - store_artifacts:
+             path: tests_png
+             destination: tests_png
+
+   macos_cdp_mpich_py38:
+      macos:
+         xcode: "11.4.0"
+      environment:
+         WORKDIR: /Users/distiller/project/macos_build
+         PKG_NAME: "cdp"
+         ENV_NAME: "test_cdp"
+         CONDA_PY_VER: "python>=3.8,<3.9"
+         LIBNETCDF: "libnetcdf=*=mpi_mpich_*"
+      steps:
+         - checkout
+         - attach_workspace:
+              at: .
+         - run: *setup_run_tests
+         - run: *conda_env_export
+         - run: *run_tests
+         - store_artifacts:
+              path: tests_html
+              destination: tests_html
+         - store_artifacts:
+             path: tests_png
+             destination: tests_png
+
+   linux_cdp_mpich_py36:
+      machine:
+         image: circleci/classic:latest
+      environment:
+         WORKDIR: /home/circleci/project/linux_build
+         PKG_NAME: "cdp"
+         ENV_NAME: "test_cdp"
+         CONDA_PY_VER: "python>=3.6,<3.7"
+         LIBNETCDF: "libnetcdf=*=mpi_mpich_*"
+      steps:
+         - checkout
+         - attach_workspace:
+              at: .
+         - run: *setup_run_tests
+         - run: *conda_env_export
+         - run: *run_tests
+         - store_artifacts:
+              path: tests_html
+              destination: tests_html
+         - store_artifacts:
+             path: tests_png
+             destination: tests_png
+
+   linux_cdp_mpich_py37:
+      machine:
+         image: circleci/classic:latest
+      environment:
+         WORKDIR: /home/circleci/project/linux_build
+         PKG_NAME: "cdp"
+         ENV_NAME: "test_cdp"
+         CONDA_PY_VER: "python>=3.7,<3.8"
+         LIBNETCDF: "libnetcdf=*=mpi_mpich_*"
+      steps:
+         - checkout
+         - attach_workspace:
+              at: .
+         - run: *setup_run_tests
+         - run: *conda_env_export
+         - run: *run_tests
+         - run: *make_doc_test
+         - store_artifacts:
+              path: tests_html
+              destination: tests_html
+         - store_artifacts:
+             path: tests_png
+             destination: tests_png
+
+   linux_cdp_mpich_py38:
+      machine:
+         image: circleci/classic:latest
+      environment:
+         WORKDIR: /home/circleci/project/linux_build
+         PKG_NAME: "cdp"
+         ENV_NAME: "test_cdp"
+         CONDA_PY_VER: "python>=3.8,<3.9"
+         LIBNETCDF: "libnetcdf=*=mpi_mpich_*"
+      steps:
+         - checkout
+         - attach_workspace:
+              at: .
+         - run: *setup_run_tests
+         - run: *conda_env_export
+         - run: *run_tests
+         - store_artifacts:
+              path: tests_html
+              destination: tests_html
+         - store_artifacts:
+             path: tests_png
+             destination: tests_png
+
+   upload:
+      macos:
+         xcode: "11.4.0"
+      environment:
+         WORKDIR: /Users/distiller/project/macos_build
+         PKG_NAME: "cdp"
+         VERSION: "1.6.0"
+         USER: "cdat"
+         LABEL: "nightly"
+      steps:
+         - attach_workspace:
+              at: .
+         - run: *conda_upload
 
 workflows:
-  version: 2
-  cdp:
-    jobs:
-      - macos_cdp
-      - linux_cdp
+   version: 2
+   cdp:
+      jobs:
+         - macos_setup
+         - linux_setup
+         - macos_cdp_nompi_py36:
+              requires:
+                 - macos_setup
+         - macos_cdp_nompi_py37:
+              requires:
+                 - macos_setup
+         - macos_cdp_nompi_py38:
+              requires:
+                 - macos_setup
+         - linux_cdp_nompi_py36:
+              requires:
+                 - linux_setup
+         - linux_cdp_nompi_py37:
+              requires:
+                 - linux_setup
+         - linux_cdp_nompi_py38:
+              requires:
+                 - linux_setup
+         - macos_cdp_mpich_py36:
+              requires:
+                 - macos_setup
+         - macos_cdp_mpich_py37:
+              requires:
+                 - macos_setup
+         - macos_cdp_mpich_py38:
+              requires:
+                 - macos_setup
+         - linux_cdp_mpich_py36:
+              requires:
+                 - linux_setup
+         - linux_cdp_mpich_py37:
+              requires:
+                 - linux_setup
+         - linux_cdp_mpich_py38:
+              requires:
+                 - linux_setup
+
+         - upload:
+              requires:
+                 - macos_cdp_nompi_py36
+                 - macos_cdp_nompi_py37
+                 - macos_cdp_nompi_py38
+                 - linux_cdp_nompi_py36
+                 - linux_cdp_nompi_py37
+                 - linux_cdp_nompi_py38
+
+                 - macos_cdp_mpich_py36
+                 - macos_cdp_mpich_py37
+                 - macos_cdp_mpich_py38
+                 - linux_cdp_mpich_py36
+                 - linux_cdp_mpich_py37
+                 - linux_cdp_mpich_py38
 
 
