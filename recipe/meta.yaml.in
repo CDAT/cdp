@@ -1,0 +1,54 @@
+{% set name = "cdp" %}
+{% set version = "1.6.0" %}
+package:
+  name: {{ name }}
+  version: {{ version }}
+
+source:
+  url: https://github.com/CDAT/cdp/archive/v{{ version }}.tar.gz
+  sha256: 4616794b779c88024bf4e8afc150dee57d44a6aee388a45fe4aaeb19abda88c5
+
+build:
+    number: 0
+    noarch: python
+    script: "python -m pip install . --no-deps -vv"
+    entry_points:
+      - cdp-distrib = cdp.cli.cdp_distrib:main
+
+requirements:
+  host:
+    - python
+    - setuptools
+    - pip
+  run:
+    - python
+    - output_viewer >=1.3.0
+    - pyyaml
+    - dask
+    - distributed
+    - six
+
+test:
+  imports:
+      - cdp
+  commands:
+      - cdp-distrib -h
+
+about:
+  home: https://github.com/cdat/cdp
+  summary: |
+    The Community Diagnostics Package (CDP) is a framework for developing new
+    climate diagnostics. CDP allows for a modular implementation of the
+    components required for running diagnostics. The design of CDP consists
+    of modules to handle the user-defined parameters, metrics, provenance,
+    file I/O, output of results and algorithms for calculating the diagnostics.
+  license: BSD-3-Clause
+  license_file: bsd-3-clause.txt
+
+extra:
+    recipe-maintainers:
+        - doutriaux1
+        - xylar
+        - muryanto1
+        - downiec
+        - jasonb
