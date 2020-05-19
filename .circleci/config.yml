@@ -345,7 +345,6 @@ jobs:
               at: .
          - run: *setup_run_tests
          - run: *run_tests
-         - run: *make_doc_test
          - store_artifacts:
               path: tests_html
               destination: tests_html
