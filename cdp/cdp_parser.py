@@ -107,7 +107,7 @@ class CDPParser(argparse.ArgumentParser):
         """
         self._parse_arguments()
         
-        if not self.__args_namespace.parameters:
+        if not self.__args_namespace:
             return None
 
         parameter = self.__parameter_cls()
@@ -115,9 +115,9 @@ class CDPParser(argparse.ArgumentParser):
         # Remove all of the variables.
         parameter.__dict__.clear()
 
-        # if self.__args_namespace.parameters is not None:
+        # if self.__args_namespace is not None:
         parameter.load_parameter_from_py(
-            self.__args_namespace.parameters)
+            self.__args_namespace)
 
         if check_values:
             parameter.check_values()
