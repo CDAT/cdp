@@ -13,13 +13,24 @@ def serial(func, parameters):
         results.append(func(p))
     return results
 
-def multiprocess(func, parameters, num_workers=None):
+def multiprocess(func, parameters, num_workers=None, context=None):
     """
     Run the function with the parameters in parallel using multiprocessing.
+
+    ``context`` is one of ``{"fork", "spawn", "forkserver"}``.  For
+    dask<2.16.0,the default context is "fork" and for dask>=2.16.0, the default
+    is "spawn".
     """
     bag = dask.bag.from_sequence(parameters)
 
-    with dask.config.set(scheduler='processes'):
+    config = {'scheduler': 'processes'}
+    if context is not None:
+        config['multiprocessing.context'] = context
+    elif hasattr(parameters[0], 'multiprocessing_context'):
+        config['multiprocessing.context'] = \
+            parameters[0].multiprocessing_context
+
+    with dask.config.set(config):
         if num_workers:
             results = bag.map(func).compute(num_workers=num_workers)
         elif hasattr(parameters[0], 'num_workers'):
